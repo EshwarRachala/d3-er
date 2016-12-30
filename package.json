@@ -22,7 +22,8 @@
   "homepage": "https://github.com/eshwarrachala/d3-er#readme",
   "scripts": {
     "pretest": "rollup -c && uglifyjs d3.js -c -m -o d3.min.js",
-    "test": "tape 'test/**/*-test.js'"
+    "test": "tape 'test/**/*-test.js'",
+    "all": "npm run pretest && npm run test"
   },
   "devDependencies": {
     "d3-selection": "1",

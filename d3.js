@@ -4,6 +4,14 @@
     (factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
+var bullet = function () {
+
+    return 'Hello World';
+
+};
+
+var version = '1.0.0';
+
 var xhtml = "http://www.w3.org/1999/xhtml";
 
 var namespaces = {
@@ -2834,11 +2842,6 @@ var active = function(node, name) {
   }
 
   return null;
-};
-
-var version = '1.0.0';
-var bullet = function () {
-    return 'bullet';
 };
 
 exports.bullet = bullet;

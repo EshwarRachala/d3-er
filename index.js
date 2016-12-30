@@ -1,16 +1,13 @@
-var version = '1.0.0';
-var bullet = function () {
-    return 'bullet';
+export {
+    default as bullet
 }
+from './src/bullet';
 
 export {
-    bullet as bullet
-};
-
-export {
-    version
+    default
     as version
-};
+}
+from './src/version';
 
 export * from 'd3-selection';
 export * from 'd3-transition';
