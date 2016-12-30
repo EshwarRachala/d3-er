@@ -7,22 +7,30 @@
     "type": "git",
     "url": "git+https://github.com/eshwarrachala/d3-er.git"
   },
-  "keywords": [],
-  "author": "Eshwar <rachal.2000@gmail.com>",
+  "keywords": [
+    "d3",
+    "d3-custom-module"
+  ],
+  "author": {
+    "name": "eshwarrachala",
+    "email": "rachala.2000@gmail.com"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/eshwarrachala/d3-er/issues"
   },
   "homepage": "https://github.com/eshwarrachala/d3-er#readme",
   "scripts": {
-    "prepublish": "rollup -c && uglifyjs d3.js -c -m -o d3.min.js"
+    "pretest": "rollup -c && uglifyjs d3.js -c -m -o d3.min.js",
+    "test": "tape 'test/**/*-test.js'"
   },
   "devDependencies": {
     "d3-selection": "1",
     "d3-transition": "1.0.3",
     "rollup": "0.39.0",
     "rollup-plugin-node-resolve": "2",
-    "uglify-js": "2"
+    "uglify-js": "2",
+    "tape": "4"
   },
   "dependencies": {}
 }
