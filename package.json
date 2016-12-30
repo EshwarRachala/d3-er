@@ -21,9 +21,10 @@
   },
   "homepage": "https://github.com/eshwarrachala/d3-er#readme",
   "scripts": {
-    "pretest": "rollup -c && uglifyjs d3.js -c -m -o d3.min.js",
+    "pretest": "rm -rf build && mkdir build && rollup -c && uglifyjs build/d3-er.js -c -m -o build/d3-er.min.js",
     "test": "tape 'test/**/*-test.js'",
-    "all": "npm run pretest && npm run test"
+    "postpublish": "zip -j build/d3-er.zip -- LICENSE README.md build/d3-er.js build/d3-er.min.js",
+    "all": "npm run pretest && npm run test && npm run postpublish"
   },
   "devDependencies": {
     "d3-selection": "1",
