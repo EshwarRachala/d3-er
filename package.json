@@ -25,7 +25,7 @@
     "test": "tape 'test/**/*-test.js'",
     "postpublish": "zip -j build/d3-er.zip -- LICENSE README.md build/d3-er.js build/d3-er.min.js",
     "all": "npm run pretest && npm run test && npm run postpublish",
-    "check": "npm install -g",
+    "check": "npm install -g npm link",
     "publish": "npm run patch && npm run publish",
     "dev": "webpack-dev-server --inline --hot  --config webpack.config.js"
   },
