@@ -24,15 +24,21 @@
     "pretest": "rm -rf build && mkdir build && rollup -c && uglifyjs build/d3-er.js -c -m -o build/d3-er.min.js",
     "test": "tape 'test/**/*-test.js'",
     "postpublish": "zip -j build/d3-er.zip -- LICENSE README.md build/d3-er.js build/d3-er.min.js",
-    "all": "npm run pretest && npm run test && npm run postpublish"
+    "all": "npm run pretest && npm run test && npm run postpublish",
+    "dev": "webpack-dev-server --inline --hot  --config webpack.config.js"
   },
   "devDependencies": {
     "d3-selection": "1",
     "d3-transition": "1.0.3",
     "rollup": "0.39.0",
     "rollup-plugin-node-resolve": "2",
+    "tape": "4",
     "uglify-js": "2",
-    "tape": "4"
+    "webpack": "1.14.0",
+    "webpack-dev-server": "1.16.2",
+    "babel-core": "6.21.0",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "6.18.0"
   },
   "dependencies": {}
 }
