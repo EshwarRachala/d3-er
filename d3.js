@@ -2836,11 +2836,13 @@ var active = function(node, name) {
   return null;
 };
 
-function bullet() {
+var version = '1.0.0';
+var bullet = function () {
     return 'bullet';
-}
+};
 
 exports.bullet = bullet;
+exports.version = version;
 exports.creator = creator;
 exports.local = local;
 exports.matcher = matcher$1;
