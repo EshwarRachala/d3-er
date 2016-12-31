@@ -27,7 +27,10 @@
     "all": "npm run pretest && npm run test && npm run postpublish",
     "check": "npm install -g && npm link",
     "publish": "npm run patch && npm run publish",
-    "dev": "webpack-dev-server --inline --hot  --config webpack.config.js"
+    "dev": "webpack-dev-server --inline --hot  --config webpack.config.js",
+    "build": "webpack --progress --hide-modules --config webpack.config.js",
+    "predeploy": "npm run build",
+    "deploy": "surge --project . --domain d3examples.surge.sh"
   },
   "devDependencies": {
     "babel-core": "6.21.0",
@@ -44,7 +47,8 @@
     "tape": "4",
     "uglify-js": "2",
     "webpack": "1.14.0",
-    "webpack-dev-server": "1.16.2"
+    "webpack-dev-server": "1.16.2",
+    "surge": "^0.18.0"
   },
   "dependencies": {}
 }

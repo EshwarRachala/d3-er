@@ -10,6 +10,10 @@ If you use NPM, `npm install d3-er`. Otherwise, download the file from build fol
 To test clone/download and run `npm install` to install dependencies 
 and `npm run dev` to run webpack dev server
 
+##Check examples
+`d3examples.surge.sh`
+
+
 ## API Reference
 
 --Todo 
