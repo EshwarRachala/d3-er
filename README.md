@@ -18,8 +18,9 @@ d3.select('body').style('background-color', 'red');
 Otherwise, download https://github.com/EshwarRachala/d3-er/blob/master/build/d3-er.js.
 
 ##Test in browser
-To test clone/download and run `npm install` to install dependencies 
-and `npm run dev` to run webpack dev server
+- To test clone https://github.com/EshwarRachala/d3-er.git
+- run `npm install` to install dependencies 
+- and `npm run dev` to run webpack dev server
 
 ##Check examples
 https://d3examples.surge.sh
