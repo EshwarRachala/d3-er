@@ -26,7 +26,9 @@
     "postpublish": "zip -j build/d3-er.zip -- LICENSE README.md build/d3-er.js build/d3-er.min.js",
     "all": "npm run pretest && npm run test && npm run postpublish",
     "check": "npm install -g && npm link",
+    "publish": "npm version patch && npm publish",
     "dev": "webpack-dev-server --inline --hot  --config webpack.config.js",
+
     "build": "webpack --progress --hide-modules --config webpack.config.js",
     "predeploy": "npm run build",
     "deploy": "surge --project . --domain d3examples.surge.sh"
