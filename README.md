@@ -8,14 +8,13 @@ If you use NPM, `npm install d3-er`.
 
 and require it in file :
 
-
 ```js
 var d3 = require('d3-er/build/d3-er');
 d3.select('body').style('background-color', 'red');
 ```
 
-
-Otherwise, download https://github.com/EshwarRachala/d3-er/blob/master/build/d3-er.js.
+##download file
+- https://github.com/EshwarRachala/d3-er/blob/master/build/d3-er.js.
 
 ##Test in browser
 - To test clone https://github.com/EshwarRachala/d3-er.git
