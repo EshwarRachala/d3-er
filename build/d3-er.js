@@ -4,13 +4,607 @@
     (factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var bullet = function () {
-
-    return 'Hello World';
-
+var ascending = function(a, b) {
+  return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
 };
 
-var version = '1.0.0';
+var bisector = function(compare) {
+  if (compare.length === 1) compare = ascendingComparator(compare);
+  return {
+    left: function(a, x, lo, hi) {
+      if (lo == null) lo = 0;
+      if (hi == null) hi = a.length;
+      while (lo < hi) {
+        var mid = lo + hi >>> 1;
+        if (compare(a[mid], x) < 0) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo;
+    },
+    right: function(a, x, lo, hi) {
+      if (lo == null) lo = 0;
+      if (hi == null) hi = a.length;
+      while (lo < hi) {
+        var mid = lo + hi >>> 1;
+        if (compare(a[mid], x) > 0) hi = mid;
+        else lo = mid + 1;
+      }
+      return lo;
+    }
+  };
+};
+
+function ascendingComparator(f) {
+  return function(d, x) {
+    return ascending(f(d), x);
+  };
+}
+
+var ascendingBisect = bisector(ascending);
+var bisectRight = ascendingBisect.right;
+var bisectLeft = ascendingBisect.left;
+
+var descending = function(a, b) {
+  return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
+};
+
+var number = function(x) {
+  return x === null ? NaN : +x;
+};
+
+var variance = function(array, f) {
+  var n = array.length,
+      m = 0,
+      a,
+      d,
+      s = 0,
+      i = -1,
+      j = 0;
+
+  if (f == null) {
+    while (++i < n) {
+      if (!isNaN(a = number(array[i]))) {
+        d = a - m;
+        m += d / ++j;
+        s += d * (a - m);
+      }
+    }
+  }
+
+  else {
+    while (++i < n) {
+      if (!isNaN(a = number(f(array[i], i, array)))) {
+        d = a - m;
+        m += d / ++j;
+        s += d * (a - m);
+      }
+    }
+  }
+
+  if (j > 1) return s / (j - 1);
+};
+
+var deviation = function(array, f) {
+  var v = variance(array, f);
+  return v ? Math.sqrt(v) : v;
+};
+
+var extent = function(array, f) {
+  var i = -1,
+      n = array.length,
+      a,
+      b,
+      c;
+
+  if (f == null) {
+    while (++i < n) if ((b = array[i]) != null && b >= b) { a = c = b; break; }
+    while (++i < n) if ((b = array[i]) != null) {
+      if (a > b) a = b;
+      if (c < b) c = b;
+    }
+  }
+
+  else {
+    while (++i < n) if ((b = f(array[i], i, array)) != null && b >= b) { a = c = b; break; }
+    while (++i < n) if ((b = f(array[i], i, array)) != null) {
+      if (a > b) a = b;
+      if (c < b) c = b;
+    }
+  }
+
+  return [a, c];
+};
+
+var array = Array.prototype;
+
+var slice = array.slice;
+var map = array.map;
+
+var constant = function(x) {
+  return function() {
+    return x;
+  };
+};
+
+var identity = function(x) {
+  return x;
+};
+
+var sequence = function(start, stop, step) {
+  start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
+
+  var i = -1,
+      n = Math.max(0, Math.ceil((stop - start) / step)) | 0,
+      range = new Array(n);
+
+  while (++i < n) {
+    range[i] = start + i * step;
+  }
+
+  return range;
+};
+
+var e10 = Math.sqrt(50);
+var e5 = Math.sqrt(10);
+var e2 = Math.sqrt(2);
+
+var ticks = function(start, stop, count) {
+  var step = tickStep(start, stop, count);
+  return sequence(
+    Math.ceil(start / step) * step,
+    Math.floor(stop / step) * step + step / 2, // inclusive
+    step
+  );
+};
+
+function tickStep(start, stop, count) {
+  var step0 = Math.abs(stop - start) / Math.max(0, count),
+      step1 = Math.pow(10, Math.floor(Math.log(step0) / Math.LN10)),
+      error = step0 / step1;
+  if (error >= e10) step1 *= 10;
+  else if (error >= e5) step1 *= 5;
+  else if (error >= e2) step1 *= 2;
+  return stop < start ? -step1 : step1;
+}
+
+var sturges = function(values) {
+  return Math.ceil(Math.log(values.length) / Math.LN2) + 1;
+};
+
+var histogram = function() {
+  var value = identity,
+      domain = extent,
+      threshold = sturges;
+
+  function histogram(data) {
+    var i,
+        n = data.length,
+        x,
+        values = new Array(n);
+
+    for (i = 0; i < n; ++i) {
+      values[i] = value(data[i], i, data);
+    }
+
+    var xz = domain(values),
+        x0 = xz[0],
+        x1 = xz[1],
+        tz = threshold(values, x0, x1);
+
+    // Convert number of thresholds into uniform thresholds.
+    if (!Array.isArray(tz)) tz = ticks(x0, x1, tz);
+
+    // Remove any thresholds outside the domain.
+    var m = tz.length;
+    while (tz[0] <= x0) tz.shift(), --m;
+    while (tz[m - 1] >= x1) tz.pop(), --m;
+
+    var bins = new Array(m + 1),
+        bin;
+
+    // Initialize bins.
+    for (i = 0; i <= m; ++i) {
+      bin = bins[i] = [];
+      bin.x0 = i > 0 ? tz[i - 1] : x0;
+      bin.x1 = i < m ? tz[i] : x1;
+    }
+
+    // Assign data to bins by value, ignoring any outside the domain.
+    for (i = 0; i < n; ++i) {
+      x = values[i];
+      if (x0 <= x && x <= x1) {
+        bins[bisectRight(tz, x, 0, m)].push(data[i]);
+      }
+    }
+
+    return bins;
+  }
+
+  histogram.value = function(_) {
+    return arguments.length ? (value = typeof _ === "function" ? _ : constant(_), histogram) : value;
+  };
+
+  histogram.domain = function(_) {
+    return arguments.length ? (domain = typeof _ === "function" ? _ : constant([_[0], _[1]]), histogram) : domain;
+  };
+
+  histogram.thresholds = function(_) {
+    return arguments.length ? (threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant(slice.call(_)) : constant(_), histogram) : threshold;
+  };
+
+  return histogram;
+};
+
+var threshold = function(array, p, f) {
+  if (f == null) f = number;
+  if (!(n = array.length)) return;
+  if ((p = +p) <= 0 || n < 2) return +f(array[0], 0, array);
+  if (p >= 1) return +f(array[n - 1], n - 1, array);
+  var n,
+      h = (n - 1) * p,
+      i = Math.floor(h),
+      a = +f(array[i], i, array),
+      b = +f(array[i + 1], i + 1, array);
+  return a + (b - a) * (h - i);
+};
+
+var freedmanDiaconis = function(values, min, max) {
+  values = map.call(values, number).sort(ascending);
+  return Math.ceil((max - min) / (2 * (threshold(values, 0.75) - threshold(values, 0.25)) * Math.pow(values.length, -1 / 3)));
+};
+
+var scott = function(values, min, max) {
+  return Math.ceil((max - min) / (3.5 * deviation(values) * Math.pow(values.length, -1 / 3)));
+};
+
+var max = function(array, f) {
+  var i = -1,
+      n = array.length,
+      a,
+      b;
+
+  if (f == null) {
+    while (++i < n) if ((b = array[i]) != null && b >= b) { a = b; break; }
+    while (++i < n) if ((b = array[i]) != null && b > a) a = b;
+  }
+
+  else {
+    while (++i < n) if ((b = f(array[i], i, array)) != null && b >= b) { a = b; break; }
+    while (++i < n) if ((b = f(array[i], i, array)) != null && b > a) a = b;
+  }
+
+  return a;
+};
+
+var mean = function(array, f) {
+  var s = 0,
+      n = array.length,
+      a,
+      i = -1,
+      j = n;
+
+  if (f == null) {
+    while (++i < n) if (!isNaN(a = number(array[i]))) s += a; else --j;
+  }
+
+  else {
+    while (++i < n) if (!isNaN(a = number(f(array[i], i, array)))) s += a; else --j;
+  }
+
+  if (j) return s / j;
+};
+
+var median = function(array, f) {
+  var numbers = [],
+      n = array.length,
+      a,
+      i = -1;
+
+  if (f == null) {
+    while (++i < n) if (!isNaN(a = number(array[i]))) numbers.push(a);
+  }
+
+  else {
+    while (++i < n) if (!isNaN(a = number(f(array[i], i, array)))) numbers.push(a);
+  }
+
+  return threshold(numbers.sort(ascending), 0.5);
+};
+
+var merge = function(arrays) {
+  var n = arrays.length,
+      m,
+      i = -1,
+      j = 0,
+      merged,
+      array;
+
+  while (++i < n) j += arrays[i].length;
+  merged = new Array(j);
+
+  while (--n >= 0) {
+    array = arrays[n];
+    m = array.length;
+    while (--m >= 0) {
+      merged[--j] = array[m];
+    }
+  }
+
+  return merged;
+};
+
+var min = function(array, f) {
+  var i = -1,
+      n = array.length,
+      a,
+      b;
+
+  if (f == null) {
+    while (++i < n) if ((b = array[i]) != null && b >= b) { a = b; break; }
+    while (++i < n) if ((b = array[i]) != null && a > b) a = b;
+  }
+
+  else {
+    while (++i < n) if ((b = f(array[i], i, array)) != null && b >= b) { a = b; break; }
+    while (++i < n) if ((b = f(array[i], i, array)) != null && a > b) a = b;
+  }
+
+  return a;
+};
+
+var pairs = function(array) {
+  var i = 0, n = array.length - 1, p = array[0], pairs = new Array(n < 0 ? 0 : n);
+  while (i < n) pairs[i] = [p, p = array[++i]];
+  return pairs;
+};
+
+var permute = function(array, indexes) {
+  var i = indexes.length, permutes = new Array(i);
+  while (i--) permutes[i] = array[indexes[i]];
+  return permutes;
+};
+
+var scan = function(array, compare) {
+  if (!(n = array.length)) return;
+  var i = 0,
+      n,
+      j = 0,
+      xi,
+      xj = array[j];
+
+  if (!compare) compare = ascending;
+
+  while (++i < n) if (compare(xi = array[i], xj) < 0 || compare(xj, xj) !== 0) xj = xi, j = i;
+
+  if (compare(xj, xj) === 0) return j;
+};
+
+var shuffle = function(array, i0, i1) {
+  var m = (i1 == null ? array.length : i1) - (i0 = i0 == null ? 0 : +i0),
+      t,
+      i;
+
+  while (m) {
+    i = Math.random() * m-- | 0;
+    t = array[m + i0];
+    array[m + i0] = array[i + i0];
+    array[i + i0] = t;
+  }
+
+  return array;
+};
+
+var sum = function(array, f) {
+  var s = 0,
+      n = array.length,
+      a,
+      i = -1;
+
+  if (f == null) {
+    while (++i < n) if (a = +array[i]) s += a; // Note: zero and null are equivalent.
+  }
+
+  else {
+    while (++i < n) if (a = +f(array[i], i, array)) s += a;
+  }
+
+  return s;
+};
+
+var transpose = function(matrix) {
+  if (!(n = matrix.length)) return [];
+  for (var i = -1, m = min(matrix, length), transpose = new Array(m); ++i < m;) {
+    for (var j = -1, n, row = transpose[i] = new Array(n); ++j < n;) {
+      row[j] = matrix[j][i];
+    }
+  }
+  return transpose;
+};
+
+function length(d) {
+  return d.length;
+}
+
+var zip = function() {
+  return transpose(arguments);
+};
+
+var slice$1 = Array.prototype.slice;
+
+var identity$1 = function(x) {
+  return x;
+};
+
+var top = 1;
+var right = 2;
+var bottom = 3;
+var left = 4;
+var epsilon = 1e-6;
+
+function translateX(scale0, scale1, d) {
+  var x = scale0(d);
+  return "translate(" + (isFinite(x) ? x : scale1(d)) + ",0)";
+}
+
+function translateY(scale0, scale1, d) {
+  var y = scale0(d);
+  return "translate(0," + (isFinite(y) ? y : scale1(d)) + ")";
+}
+
+function center(scale) {
+  var offset = scale.bandwidth() / 2;
+  if (scale.round()) offset = Math.round(offset);
+  return function(d) {
+    return scale(d) + offset;
+  };
+}
+
+function entering() {
+  return !this.__axis;
+}
+
+function axis(orient, scale) {
+  var tickArguments = [],
+      tickValues = null,
+      tickFormat = null,
+      tickSizeInner = 6,
+      tickSizeOuter = 6,
+      tickPadding = 3;
+
+  function axis(context) {
+    var values = tickValues == null ? (scale.ticks ? scale.ticks.apply(scale, tickArguments) : scale.domain()) : tickValues,
+        format = tickFormat == null ? (scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : identity$1) : tickFormat,
+        spacing = Math.max(tickSizeInner, 0) + tickPadding,
+        transform = orient === top || orient === bottom ? translateX : translateY,
+        range = scale.range(),
+        range0 = range[0] + 0.5,
+        range1 = range[range.length - 1] + 0.5,
+        position = (scale.bandwidth ? center : identity$1)(scale.copy()),
+        selection = context.selection ? context.selection() : context,
+        path = selection.selectAll(".domain").data([null]),
+        tick = selection.selectAll(".tick").data(values, scale).order(),
+        tickExit = tick.exit(),
+        tickEnter = tick.enter().append("g").attr("class", "tick"),
+        line = tick.select("line"),
+        text = tick.select("text"),
+        k = orient === top || orient === left ? -1 : 1,
+        x, y = orient === left || orient === right ? (x = "x", "y") : (x = "y", "x");
+
+    path = path.merge(path.enter().insert("path", ".tick")
+        .attr("class", "domain")
+        .attr("stroke", "#000"));
+
+    tick = tick.merge(tickEnter);
+
+    line = line.merge(tickEnter.append("line")
+        .attr("stroke", "#000")
+        .attr(x + "2", k * tickSizeInner)
+        .attr(y + "1", 0.5)
+        .attr(y + "2", 0.5));
+
+    text = text.merge(tickEnter.append("text")
+        .attr("fill", "#000")
+        .attr(x, k * spacing)
+        .attr(y, 0.5)
+        .attr("dy", orient === top ? "0em" : orient === bottom ? "0.71em" : "0.32em"));
+
+    if (context !== selection) {
+      path = path.transition(context);
+      tick = tick.transition(context);
+      line = line.transition(context);
+      text = text.transition(context);
+
+      tickExit = tickExit.transition(context)
+          .attr("opacity", epsilon)
+          .attr("transform", function(d) { return transform(position, this.parentNode.__axis || position, d); });
+
+      tickEnter
+          .attr("opacity", epsilon)
+          .attr("transform", function(d) { return transform(this.parentNode.__axis || position, position, d); });
+    }
+
+    tickExit.remove();
+
+    path
+        .attr("d", orient === left || orient == right
+            ? "M" + k * tickSizeOuter + "," + range0 + "H0.5V" + range1 + "H" + k * tickSizeOuter
+            : "M" + range0 + "," + k * tickSizeOuter + "V0.5H" + range1 + "V" + k * tickSizeOuter);
+
+    tick
+        .attr("opacity", 1)
+        .attr("transform", function(d) { return transform(position, position, d); });
+
+    line
+        .attr(x + "2", k * tickSizeInner);
+
+    text
+        .attr(x, k * spacing)
+        .text(format);
+
+    selection.filter(entering)
+        .attr("fill", "none")
+        .attr("font-size", 10)
+        .attr("font-family", "sans-serif")
+        .attr("text-anchor", orient === right ? "start" : orient === left ? "end" : "middle");
+
+    selection
+        .each(function() { this.__axis = position; });
+  }
+
+  axis.scale = function(_) {
+    return arguments.length ? (scale = _, axis) : scale;
+  };
+
+  axis.ticks = function() {
+    return tickArguments = slice$1.call(arguments), axis;
+  };
+
+  axis.tickArguments = function(_) {
+    return arguments.length ? (tickArguments = _ == null ? [] : slice$1.call(_), axis) : tickArguments.slice();
+  };
+
+  axis.tickValues = function(_) {
+    return arguments.length ? (tickValues = _ == null ? null : slice$1.call(_), axis) : tickValues && tickValues.slice();
+  };
+
+  axis.tickFormat = function(_) {
+    return arguments.length ? (tickFormat = _, axis) : tickFormat;
+  };
+
+  axis.tickSize = function(_) {
+    return arguments.length ? (tickSizeInner = tickSizeOuter = +_, axis) : tickSizeInner;
+  };
+
+  axis.tickSizeInner = function(_) {
+    return arguments.length ? (tickSizeInner = +_, axis) : tickSizeInner;
+  };
+
+  axis.tickSizeOuter = function(_) {
+    return arguments.length ? (tickSizeOuter = +_, axis) : tickSizeOuter;
+  };
+
+  axis.tickPadding = function(_) {
+    return arguments.length ? (tickPadding = +_, axis) : tickPadding;
+  };
+
+  return axis;
+}
+
+function axisTop(scale) {
+  return axis(top, scale);
+}
+
+function axisRight(scale) {
+  return axis(right, scale);
+}
+
+function axisBottom(scale) {
+  return axis(bottom, scale);
+}
+
+function axisLeft(scale) {
+  return axis(left, scale);
+}
 
 var xhtml = "http://www.w3.org/1999/xhtml";
 
@@ -322,7 +916,7 @@ EnterNode.prototype = {
   querySelectorAll: function(selector) { return this._parent.querySelectorAll(selector); }
 };
 
-var constant = function(x) {
+var constant$1 = function(x) {
   return function() {
     return x;
   };
@@ -411,7 +1005,7 @@ var selection_data = function(value, key) {
       parents = this._parents,
       groups = this._groups;
 
-  if (typeof value !== "function") value = constant(value);
+  if (typeof value !== "function") value = constant$1(value);
 
   for (var m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
     var parent = parents[j],
@@ -479,7 +1073,7 @@ var selection_order = function() {
 };
 
 var selection_sort = function(compare) {
-  if (!compare) compare = ascending;
+  if (!compare) compare = ascending$1;
 
   function compareNode(a, b) {
     return a && b ? compare(a.__data__, b.__data__) : !a - !b;
@@ -497,7 +1091,7 @@ var selection_sort = function(compare) {
   return new Selection(sortgroups, this._parents).order();
 };
 
-function ascending(a, b) {
+function ascending$1(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
 }
 
@@ -1159,6 +1753,18 @@ var timeout$1 = function(callback, delay, time) {
   t.restart(function(elapsed) {
     t.stop();
     callback(elapsed + delay);
+  }, delay, time);
+  return t;
+};
+
+var interval$1 = function(callback, delay, time) {
+  var t = new Timer, total = delay;
+  if (delay == null) return t.restart(callback, delay, time), t;
+  delay = +delay, time = time == null ? now() : +time;
+  t.restart(function tick(elapsed) {
+    elapsed += total;
+    t.restart(tick, total += delay, time);
+    callback(elapsed);
   }, delay, time);
   return t;
 };
@@ -1859,7 +2465,7 @@ function basis(t1, v0, v1, v2, v3) {
       + t3 * v3) / 6;
 }
 
-var constant$1 = function(x) {
+var constant$2 = function(x) {
   return function() {
     return x;
   };
@@ -1879,18 +2485,18 @@ function exponential(a, b, y) {
 
 function hue(a, b) {
   var d = b - a;
-  return d ? linear(a, d > 180 || d < -180 ? d - 360 * Math.round(d / 360) : d) : constant$1(isNaN(a) ? b : a);
+  return d ? linear(a, d > 180 || d < -180 ? d - 360 * Math.round(d / 360) : d) : constant$2(isNaN(a) ? b : a);
 }
 
 function gamma(y) {
   return (y = +y) === 1 ? nogamma : function(a, b) {
-    return b - a ? exponential(a, b, y) : constant$1(isNaN(a) ? b : a);
+    return b - a ? exponential(a, b, y) : constant$2(isNaN(a) ? b : a);
   };
 }
 
 function nogamma(a, b) {
   var d = b - a;
-  return d ? linear(a, d) : constant$1(isNaN(a) ? b : a);
+  return d ? linear(a, d) : constant$2(isNaN(a) ? b : a);
 }
 
 var interpolateRgb = ((function rgbGamma(y) {
@@ -1915,9 +2521,54 @@ var interpolateRgb = ((function rgbGamma(y) {
   return rgb$$1;
 }))(1);
 
-var interpolateNumber = function(a, b) {
+var array$1 = function(a, b) {
+  var nb = b ? b.length : 0,
+      na = a ? Math.min(nb, a.length) : 0,
+      x = new Array(nb),
+      c = new Array(nb),
+      i;
+
+  for (i = 0; i < na; ++i) x[i] = interpolateValue(a[i], b[i]);
+  for (; i < nb; ++i) c[i] = b[i];
+
+  return function(t) {
+    for (i = 0; i < na; ++i) c[i] = x[i](t);
+    return c;
+  };
+};
+
+var date = function(a, b) {
+  var d = new Date;
+  return a = +a, b -= a, function(t) {
+    return d.setTime(a + b * t), d;
+  };
+};
+
+var reinterpolate = function(a, b) {
   return a = +a, b -= a, function(t) {
     return a + b * t;
+  };
+};
+
+var object = function(a, b) {
+  var i = {},
+      c = {},
+      k;
+
+  if (a === null || typeof a !== "object") a = {};
+  if (b === null || typeof b !== "object") b = {};
+
+  for (k in b) {
+    if (k in a) {
+      i[k] = interpolateValue(a[k], b[k]);
+    } else {
+      c[k] = b[k];
+    }
+  }
+
+  return function(t) {
+    for (k in i) c[k] = i[k](t);
+    return c;
   };
 };
 
@@ -1961,7 +2612,7 @@ var interpolateString = function(a, b) {
       else s[++i] = bm;
     } else { // interpolate non-matching numbers
       s[++i] = null;
-      q.push({i: i, x: interpolateNumber(am, bm)});
+      q.push({i: i, x: reinterpolate(am, bm)});
     }
     bi = reB.lastIndex;
   }
@@ -1984,9 +2635,27 @@ var interpolateString = function(a, b) {
         });
 };
 
+var interpolateValue = function(a, b) {
+  var t = typeof b, c;
+  return b == null || t === "boolean" ? constant$2(b)
+      : (t === "number" ? reinterpolate
+      : t === "string" ? ((c = color(b)) ? (b = c, interpolateRgb) : interpolateString)
+      : b instanceof color ? interpolateRgb
+      : b instanceof Date ? date
+      : Array.isArray(b) ? array$1
+      : isNaN(b) ? object
+      : reinterpolate)(a, b);
+};
+
+var interpolateRound = function(a, b) {
+  return a = +a, b -= a, function(t) {
+    return Math.round(a + b * t);
+  };
+};
+
 var degrees = 180 / Math.PI;
 
-var identity = {
+var identity$2 = {
   translateX: 0,
   translateY: 0,
   rotate: 0,
@@ -2017,7 +2686,7 @@ var cssView;
 var svgNode;
 
 function parseCss(value) {
-  if (value === "none") return identity;
+  if (value === "none") return identity$2;
   if (!cssNode) cssNode = document.createElement("DIV"), cssRoot = document.documentElement, cssView = document.defaultView;
   cssNode.style.transform = value;
   value = cssView.getComputedStyle(cssRoot.appendChild(cssNode), null).getPropertyValue("transform");
@@ -2027,10 +2696,10 @@ function parseCss(value) {
 }
 
 function parseSvg(value) {
-  if (value == null) return identity;
+  if (value == null) return identity$2;
   if (!svgNode) svgNode = document.createElementNS("http://www.w3.org/2000/svg", "g");
   svgNode.setAttribute("transform", value);
-  if (!(value = svgNode.transform.baseVal.consolidate())) return identity;
+  if (!(value = svgNode.transform.baseVal.consolidate())) return identity$2;
   value = value.matrix;
   return decompose(value.a, value.b, value.c, value.d, value.e, value.f);
 }
@@ -2044,7 +2713,7 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
   function translate(xa, ya, xb, yb, s, q) {
     if (xa !== xb || ya !== yb) {
       var i = s.push("translate(", null, pxComma, null, pxParen);
-      q.push({i: i - 4, x: interpolateNumber(xa, xb)}, {i: i - 2, x: interpolateNumber(ya, yb)});
+      q.push({i: i - 4, x: reinterpolate(xa, xb)}, {i: i - 2, x: reinterpolate(ya, yb)});
     } else if (xb || yb) {
       s.push("translate(" + xb + pxComma + yb + pxParen);
     }
@@ -2053,7 +2722,7 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
   function rotate(a, b, s, q) {
     if (a !== b) {
       if (a - b > 180) b += 360; else if (b - a > 180) a += 360; // shortest path
-      q.push({i: s.push(pop(s) + "rotate(", null, degParen) - 2, x: interpolateNumber(a, b)});
+      q.push({i: s.push(pop(s) + "rotate(", null, degParen) - 2, x: reinterpolate(a, b)});
     } else if (b) {
       s.push(pop(s) + "rotate(" + b + degParen);
     }
@@ -2061,7 +2730,7 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
 
   function skewX(a, b, s, q) {
     if (a !== b) {
-      q.push({i: s.push(pop(s) + "skewX(", null, degParen) - 2, x: interpolateNumber(a, b)});
+      q.push({i: s.push(pop(s) + "skewX(", null, degParen) - 2, x: reinterpolate(a, b)});
     } else if (b) {
       s.push(pop(s) + "skewX(" + b + degParen);
     }
@@ -2070,7 +2739,7 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
   function scale(xa, ya, xb, yb, s, q) {
     if (xa !== xb || ya !== yb) {
       var i = s.push(pop(s) + "scale(", null, ",", null, ")");
-      q.push({i: i - 4, x: interpolateNumber(xa, xb)}, {i: i - 2, x: interpolateNumber(ya, yb)});
+      q.push({i: i - 4, x: reinterpolate(xa, xb)}, {i: i - 2, x: reinterpolate(ya, yb)});
     } else if (xb !== 1 || yb !== 1) {
       s.push(pop(s) + "scale(" + xb + "," + yb + ")");
     }
@@ -2208,7 +2877,7 @@ function tweenValue(transition, name, value) {
 
 var interpolate$$1 = function(a, b) {
   var c;
-  return (typeof b === "number" ? interpolateNumber
+  return (typeof b === "number" ? reinterpolate
       : b instanceof color ? interpolateRgb
       : (c = color(b)) ? (b = c, interpolateRgb)
       : interpolateString)(a, b);
@@ -2844,8 +3513,2398 @@ var active = function(node, name) {
   return null;
 };
 
+var prefix = "$";
+
+function Map() {}
+
+Map.prototype = map$1.prototype = {
+  constructor: Map,
+  has: function(key) {
+    return (prefix + key) in this;
+  },
+  get: function(key) {
+    return this[prefix + key];
+  },
+  set: function(key, value) {
+    this[prefix + key] = value;
+    return this;
+  },
+  remove: function(key) {
+    var property = prefix + key;
+    return property in this && delete this[property];
+  },
+  clear: function() {
+    for (var property in this) if (property[0] === prefix) delete this[property];
+  },
+  keys: function() {
+    var keys = [];
+    for (var property in this) if (property[0] === prefix) keys.push(property.slice(1));
+    return keys;
+  },
+  values: function() {
+    var values = [];
+    for (var property in this) if (property[0] === prefix) values.push(this[property]);
+    return values;
+  },
+  entries: function() {
+    var entries = [];
+    for (var property in this) if (property[0] === prefix) entries.push({key: property.slice(1), value: this[property]});
+    return entries;
+  },
+  size: function() {
+    var size = 0;
+    for (var property in this) if (property[0] === prefix) ++size;
+    return size;
+  },
+  empty: function() {
+    for (var property in this) if (property[0] === prefix) return false;
+    return true;
+  },
+  each: function(f) {
+    for (var property in this) if (property[0] === prefix) f(this[property], property.slice(1), this);
+  }
+};
+
+function map$1(object, f) {
+  var map = new Map;
+
+  // Copy constructor.
+  if (object instanceof Map) object.each(function(value, key) { map.set(key, value); });
+
+  // Index array by numeric index or specified key function.
+  else if (Array.isArray(object)) {
+    var i = -1,
+        n = object.length,
+        o;
+
+    if (f == null) while (++i < n) map.set(i, object[i]);
+    else while (++i < n) map.set(f(o = object[i], i, object), o);
+  }
+
+  // Convert object to map.
+  else if (object) for (var key in object) map.set(key, object[key]);
+
+  return map;
+}
+
+function Set() {}
+
+var proto = map$1.prototype;
+
+Set.prototype = set$2.prototype = {
+  constructor: Set,
+  has: proto.has,
+  add: function(value) {
+    value += "";
+    this[prefix + value] = value;
+    return this;
+  },
+  remove: proto.remove,
+  clear: proto.clear,
+  values: proto.keys,
+  size: proto.size,
+  empty: proto.empty,
+  each: proto.each
+};
+
+function set$2(object, f) {
+  var set = new Set;
+
+  // Copy constructor.
+  if (object instanceof Set) object.each(function(value) { set.add(value); });
+
+  // Otherwise, assume it’s an array.
+  else if (object) {
+    var i = -1, n = object.length;
+    if (f == null) while (++i < n) set.add(object[i]);
+    else while (++i < n) set.add(f(object[i], i, object));
+  }
+
+  return set;
+}
+
+var array$2 = Array.prototype;
+
+var map$3 = array$2.map;
+var slice$2 = array$2.slice;
+
+var implicit = {name: "implicit"};
+
+function ordinal(range) {
+  var index = map$1(),
+      domain = [],
+      unknown = implicit;
+
+  range = range == null ? [] : slice$2.call(range);
+
+  function scale(d) {
+    var key = d + "", i = index.get(key);
+    if (!i) {
+      if (unknown !== implicit) return unknown;
+      index.set(key, i = domain.push(d));
+    }
+    return range[(i - 1) % range.length];
+  }
+
+  scale.domain = function(_) {
+    if (!arguments.length) return domain.slice();
+    domain = [], index = map$1();
+    var i = -1, n = _.length, d, key;
+    while (++i < n) if (!index.has(key = (d = _[i]) + "")) index.set(key, domain.push(d));
+    return scale;
+  };
+
+  scale.range = function(_) {
+    return arguments.length ? (range = slice$2.call(_), scale) : range.slice();
+  };
+
+  scale.unknown = function(_) {
+    return arguments.length ? (unknown = _, scale) : unknown;
+  };
+
+  scale.copy = function() {
+    return ordinal()
+        .domain(domain)
+        .range(range)
+        .unknown(unknown);
+  };
+
+  return scale;
+}
+
+function band() {
+  var scale = ordinal().unknown(undefined),
+      domain = scale.domain,
+      ordinalRange = scale.range,
+      range$$1 = [0, 1],
+      step,
+      bandwidth,
+      round = false,
+      paddingInner = 0,
+      paddingOuter = 0,
+      align = 0.5;
+
+  delete scale.unknown;
+
+  function rescale() {
+    var n = domain().length,
+        reverse = range$$1[1] < range$$1[0],
+        start = range$$1[reverse - 0],
+        stop = range$$1[1 - reverse];
+    step = (stop - start) / Math.max(1, n - paddingInner + paddingOuter * 2);
+    if (round) step = Math.floor(step);
+    start += (stop - start - step * (n - paddingInner)) * align;
+    bandwidth = step * (1 - paddingInner);
+    if (round) start = Math.round(start), bandwidth = Math.round(bandwidth);
+    var values = sequence(n).map(function(i) { return start + step * i; });
+    return ordinalRange(reverse ? values.reverse() : values);
+  }
+
+  scale.domain = function(_) {
+    return arguments.length ? (domain(_), rescale()) : domain();
+  };
+
+  scale.range = function(_) {
+    return arguments.length ? (range$$1 = [+_[0], +_[1]], rescale()) : range$$1.slice();
+  };
+
+  scale.rangeRound = function(_) {
+    return range$$1 = [+_[0], +_[1]], round = true, rescale();
+  };
+
+  scale.bandwidth = function() {
+    return bandwidth;
+  };
+
+  scale.step = function() {
+    return step;
+  };
+
+  scale.round = function(_) {
+    return arguments.length ? (round = !!_, rescale()) : round;
+  };
+
+  scale.padding = function(_) {
+    return arguments.length ? (paddingInner = paddingOuter = Math.max(0, Math.min(1, _)), rescale()) : paddingInner;
+  };
+
+  scale.paddingInner = function(_) {
+    return arguments.length ? (paddingInner = Math.max(0, Math.min(1, _)), rescale()) : paddingInner;
+  };
+
+  scale.paddingOuter = function(_) {
+    return arguments.length ? (paddingOuter = Math.max(0, Math.min(1, _)), rescale()) : paddingOuter;
+  };
+
+  scale.align = function(_) {
+    return arguments.length ? (align = Math.max(0, Math.min(1, _)), rescale()) : align;
+  };
+
+  scale.copy = function() {
+    return band()
+        .domain(domain())
+        .range(range$$1)
+        .round(round)
+        .paddingInner(paddingInner)
+        .paddingOuter(paddingOuter)
+        .align(align);
+  };
+
+  return rescale();
+}
+
+function pointish(scale) {
+  var copy = scale.copy;
+
+  scale.padding = scale.paddingOuter;
+  delete scale.paddingInner;
+  delete scale.paddingOuter;
+
+  scale.copy = function() {
+    return pointish(copy());
+  };
+
+  return scale;
+}
+
+function point$1() {
+  return pointish(band().paddingInner(1));
+}
+
+var constant$3 = function(x) {
+  return function() {
+    return x;
+  };
+};
+
+var number$1 = function(x) {
+  return +x;
+};
+
+var unit = [0, 1];
+
+function deinterpolateLinear(a, b) {
+  return (b -= (a = +a))
+      ? function(x) { return (x - a) / b; }
+      : constant$3(b);
+}
+
+function deinterpolateClamp(deinterpolate) {
+  return function(a, b) {
+    var d = deinterpolate(a = +a, b = +b);
+    return function(x) { return x <= a ? 0 : x >= b ? 1 : d(x); };
+  };
+}
+
+function reinterpolateClamp(reinterpolate) {
+  return function(a, b) {
+    var r = reinterpolate(a = +a, b = +b);
+    return function(t) { return t <= 0 ? a : t >= 1 ? b : r(t); };
+  };
+}
+
+function bimap(domain, range$$1, deinterpolate, reinterpolate) {
+  var d0 = domain[0], d1 = domain[1], r0 = range$$1[0], r1 = range$$1[1];
+  if (d1 < d0) d0 = deinterpolate(d1, d0), r0 = reinterpolate(r1, r0);
+  else d0 = deinterpolate(d0, d1), r0 = reinterpolate(r0, r1);
+  return function(x) { return r0(d0(x)); };
+}
+
+function polymap(domain, range$$1, deinterpolate, reinterpolate) {
+  var j = Math.min(domain.length, range$$1.length) - 1,
+      d = new Array(j),
+      r = new Array(j),
+      i = -1;
+
+  // Reverse descending domains.
+  if (domain[j] < domain[0]) {
+    domain = domain.slice().reverse();
+    range$$1 = range$$1.slice().reverse();
+  }
+
+  while (++i < j) {
+    d[i] = deinterpolate(domain[i], domain[i + 1]);
+    r[i] = reinterpolate(range$$1[i], range$$1[i + 1]);
+  }
+
+  return function(x) {
+    var i = bisectRight(domain, x, 1, j) - 1;
+    return r[i](d[i](x));
+  };
+}
+
+function copy(source, target) {
+  return target
+      .domain(source.domain())
+      .range(source.range())
+      .interpolate(source.interpolate())
+      .clamp(source.clamp());
+}
+
+// deinterpolate(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
+// reinterpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding domain value x in [a,b].
+function continuous(deinterpolate, reinterpolate) {
+  var domain = unit,
+      range$$1 = unit,
+      interpolate$$1 = interpolateValue,
+      clamp = false,
+      piecewise,
+      output,
+      input;
+
+  function rescale() {
+    piecewise = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
+    output = input = null;
+    return scale;
+  }
+
+  function scale(x) {
+    return (output || (output = piecewise(domain, range$$1, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate$$1)))(+x);
+  }
+
+  scale.invert = function(y) {
+    return (input || (input = piecewise(range$$1, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
+  };
+
+  scale.domain = function(_) {
+    return arguments.length ? (domain = map$3.call(_, number$1), rescale()) : domain.slice();
+  };
+
+  scale.range = function(_) {
+    return arguments.length ? (range$$1 = slice$2.call(_), rescale()) : range$$1.slice();
+  };
+
+  scale.rangeRound = function(_) {
+    return range$$1 = slice$2.call(_), interpolate$$1 = interpolateRound, rescale();
+  };
+
+  scale.clamp = function(_) {
+    return arguments.length ? (clamp = !!_, rescale()) : clamp;
+  };
+
+  scale.interpolate = function(_) {
+    return arguments.length ? (interpolate$$1 = _, rescale()) : interpolate$$1;
+  };
+
+  return rescale();
+}
+
+// Computes the decimal coefficient and exponent of the specified number x with
+// significant digits p, where x is positive and p is in [1, 21] or undefined.
+// For example, formatDecimal(1.23) returns ["123", 0].
+var formatDecimal = function(x, p) {
+  if ((i = (x = p ? x.toExponential(p - 1) : x.toExponential()).indexOf("e")) < 0) return null; // NaN, ±Infinity
+  var i, coefficient = x.slice(0, i);
+
+  // The string returned by toExponential either has the form \d\.\d+e[-+]\d+
+  // (e.g., 1.2e+3) or the form \de[-+]\d+ (e.g., 1e+3).
+  return [
+    coefficient.length > 1 ? coefficient[0] + coefficient.slice(2) : coefficient,
+    +x.slice(i + 1)
+  ];
+};
+
+var exponent$1 = function(x) {
+  return x = formatDecimal(Math.abs(x)), x ? x[1] : NaN;
+};
+
+var formatGroup = function(grouping, thousands) {
+  return function(value, width) {
+    var i = value.length,
+        t = [],
+        j = 0,
+        g = grouping[0],
+        length = 0;
+
+    while (i > 0 && g > 0) {
+      if (length + g + 1 > width) g = Math.max(1, width - length);
+      t.push(value.substring(i -= g, i + g));
+      if ((length += g + 1) > width) break;
+      g = grouping[j = (j + 1) % grouping.length];
+    }
+
+    return t.reverse().join(thousands);
+  };
+};
+
+var formatDefault = function(x, p) {
+  x = x.toPrecision(p);
+
+  out: for (var n = x.length, i = 1, i0 = -1, i1; i < n; ++i) {
+    switch (x[i]) {
+      case ".": i0 = i1 = i; break;
+      case "0": if (i0 === 0) i0 = i; i1 = i; break;
+      case "e": break out;
+      default: if (i0 > 0) i0 = 0; break;
+    }
+  }
+
+  return i0 > 0 ? x.slice(0, i0) + x.slice(i1 + 1) : x;
+};
+
+var prefixExponent;
+
+var formatPrefixAuto = function(x, p) {
+  var d = formatDecimal(x, p);
+  if (!d) return x + "";
+  var coefficient = d[0],
+      exponent = d[1],
+      i = exponent - (prefixExponent = Math.max(-8, Math.min(8, Math.floor(exponent / 3))) * 3) + 1,
+      n = coefficient.length;
+  return i === n ? coefficient
+      : i > n ? coefficient + new Array(i - n + 1).join("0")
+      : i > 0 ? coefficient.slice(0, i) + "." + coefficient.slice(i)
+      : "0." + new Array(1 - i).join("0") + formatDecimal(x, Math.max(0, p + i - 1))[0]; // less than 1y!
+};
+
+var formatRounded = function(x, p) {
+  var d = formatDecimal(x, p);
+  if (!d) return x + "";
+  var coefficient = d[0],
+      exponent = d[1];
+  return exponent < 0 ? "0." + new Array(-exponent).join("0") + coefficient
+      : coefficient.length > exponent + 1 ? coefficient.slice(0, exponent + 1) + "." + coefficient.slice(exponent + 1)
+      : coefficient + new Array(exponent - coefficient.length + 2).join("0");
+};
+
+var formatTypes = {
+  "": formatDefault,
+  "%": function(x, p) { return (x * 100).toFixed(p); },
+  "b": function(x) { return Math.round(x).toString(2); },
+  "c": function(x) { return x + ""; },
+  "d": function(x) { return Math.round(x).toString(10); },
+  "e": function(x, p) { return x.toExponential(p); },
+  "f": function(x, p) { return x.toFixed(p); },
+  "g": function(x, p) { return x.toPrecision(p); },
+  "o": function(x) { return Math.round(x).toString(8); },
+  "p": function(x, p) { return formatRounded(x * 100, p); },
+  "r": formatRounded,
+  "s": formatPrefixAuto,
+  "X": function(x) { return Math.round(x).toString(16).toUpperCase(); },
+  "x": function(x) { return Math.round(x).toString(16); }
+};
+
+// [[fill]align][sign][symbol][0][width][,][.precision][type]
+var re = /^(?:(.)?([<>=^]))?([+\-\( ])?([$#])?(0)?(\d+)?(,)?(\.\d+)?([a-z%])?$/i;
+
+var formatSpecifier = function(specifier) {
+  return new FormatSpecifier(specifier);
+};
+
+function FormatSpecifier(specifier) {
+  if (!(match = re.exec(specifier))) throw new Error("invalid format: " + specifier);
+
+  var match,
+      fill = match[1] || " ",
+      align = match[2] || ">",
+      sign = match[3] || "-",
+      symbol = match[4] || "",
+      zero = !!match[5],
+      width = match[6] && +match[6],
+      comma = !!match[7],
+      precision = match[8] && +match[8].slice(1),
+      type = match[9] || "";
+
+  // The "n" type is an alias for ",g".
+  if (type === "n") comma = true, type = "g";
+
+  // Map invalid types to the default format.
+  else if (!formatTypes[type]) type = "";
+
+  // If zero fill is specified, padding goes after sign and before digits.
+  if (zero || (fill === "0" && align === "=")) zero = true, fill = "0", align = "=";
+
+  this.fill = fill;
+  this.align = align;
+  this.sign = sign;
+  this.symbol = symbol;
+  this.zero = zero;
+  this.width = width;
+  this.comma = comma;
+  this.precision = precision;
+  this.type = type;
+}
+
+FormatSpecifier.prototype.toString = function() {
+  return this.fill
+      + this.align
+      + this.sign
+      + this.symbol
+      + (this.zero ? "0" : "")
+      + (this.width == null ? "" : Math.max(1, this.width | 0))
+      + (this.comma ? "," : "")
+      + (this.precision == null ? "" : "." + Math.max(0, this.precision | 0))
+      + this.type;
+};
+
+var prefixes = ["y","z","a","f","p","n","µ","m","","k","M","G","T","P","E","Z","Y"];
+
+function identity$4(x) {
+  return x;
+}
+
+var formatLocale = function(locale) {
+  var group = locale.grouping && locale.thousands ? formatGroup(locale.grouping, locale.thousands) : identity$4,
+      currency = locale.currency,
+      decimal = locale.decimal;
+
+  function newFormat(specifier) {
+    specifier = formatSpecifier(specifier);
+
+    var fill = specifier.fill,
+        align = specifier.align,
+        sign = specifier.sign,
+        symbol = specifier.symbol,
+        zero = specifier.zero,
+        width = specifier.width,
+        comma = specifier.comma,
+        precision = specifier.precision,
+        type = specifier.type;
+
+    // Compute the prefix and suffix.
+    // For SI-prefix, the suffix is lazily computed.
+    var prefix = symbol === "$" ? currency[0] : symbol === "#" && /[boxX]/.test(type) ? "0" + type.toLowerCase() : "",
+        suffix = symbol === "$" ? currency[1] : /[%p]/.test(type) ? "%" : "";
+
+    // What format function should we use?
+    // Is this an integer type?
+    // Can this type generate exponential notation?
+    var formatType = formatTypes[type],
+        maybeSuffix = !type || /[defgprs%]/.test(type);
+
+    // Set the default precision if not specified,
+    // or clamp the specified precision to the supported range.
+    // For significant precision, it must be in [1, 21].
+    // For fixed precision, it must be in [0, 20].
+    precision = precision == null ? (type ? 6 : 12)
+        : /[gprs]/.test(type) ? Math.max(1, Math.min(21, precision))
+        : Math.max(0, Math.min(20, precision));
+
+    function format(value) {
+      var valuePrefix = prefix,
+          valueSuffix = suffix,
+          i, n, c;
+
+      if (type === "c") {
+        valueSuffix = formatType(value) + valueSuffix;
+        value = "";
+      } else {
+        value = +value;
+
+        // Convert negative to positive, and compute the prefix.
+        // Note that -0 is not less than 0, but 1 / -0 is!
+        var valueNegative = (value < 0 || 1 / value < 0) && (value *= -1, true);
+
+        // Perform the initial formatting.
+        value = formatType(value, precision);
+
+        // If the original value was negative, it may be rounded to zero during
+        // formatting; treat this as (positive) zero.
+        if (valueNegative) {
+          i = -1, n = value.length;
+          valueNegative = false;
+          while (++i < n) {
+            if (c = value.charCodeAt(i), (48 < c && c < 58)
+                || (type === "x" && 96 < c && c < 103)
+                || (type === "X" && 64 < c && c < 71)) {
+              valueNegative = true;
+              break;
+            }
+          }
+        }
+
+        // Compute the prefix and suffix.
+        valuePrefix = (valueNegative ? (sign === "(" ? sign : "-") : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
+        valueSuffix = valueSuffix + (type === "s" ? prefixes[8 + prefixExponent / 3] : "") + (valueNegative && sign === "(" ? ")" : "");
+
+        // Break the formatted value into the integer “value” part that can be
+        // grouped, and fractional or exponential “suffix” part that is not.
+        if (maybeSuffix) {
+          i = -1, n = value.length;
+          while (++i < n) {
+            if (c = value.charCodeAt(i), 48 > c || c > 57) {
+              valueSuffix = (c === 46 ? decimal + value.slice(i + 1) : value.slice(i)) + valueSuffix;
+              value = value.slice(0, i);
+              break;
+            }
+          }
+        }
+      }
+
+      // If the fill character is not "0", grouping is applied before padding.
+      if (comma && !zero) value = group(value, Infinity);
+
+      // Compute the padding.
+      var length = valuePrefix.length + value.length + valueSuffix.length,
+          padding = length < width ? new Array(width - length + 1).join(fill) : "";
+
+      // If the fill character is "0", grouping is applied after padding.
+      if (comma && zero) value = group(padding + value, padding.length ? width - valueSuffix.length : Infinity), padding = "";
+
+      // Reconstruct the final output based on the desired alignment.
+      switch (align) {
+        case "<": return valuePrefix + value + valueSuffix + padding;
+        case "=": return valuePrefix + padding + value + valueSuffix;
+        case "^": return padding.slice(0, length = padding.length >> 1) + valuePrefix + value + valueSuffix + padding.slice(length);
+      }
+      return padding + valuePrefix + value + valueSuffix;
+    }
+
+    format.toString = function() {
+      return specifier + "";
+    };
+
+    return format;
+  }
+
+  function formatPrefix(specifier, value) {
+    var f = newFormat((specifier = formatSpecifier(specifier), specifier.type = "f", specifier)),
+        e = Math.max(-8, Math.min(8, Math.floor(exponent$1(value) / 3))) * 3,
+        k = Math.pow(10, -e),
+        prefix = prefixes[8 + e / 3];
+    return function(value) {
+      return f(k * value) + prefix;
+    };
+  }
+
+  return {
+    format: newFormat,
+    formatPrefix: formatPrefix
+  };
+};
+
+var locale$1;
+var format;
+var formatPrefix;
+
+defaultLocale({
+  decimal: ".",
+  thousands: ",",
+  grouping: [3],
+  currency: ["$", ""]
+});
+
+function defaultLocale(definition) {
+  locale$1 = formatLocale(definition);
+  format = locale$1.format;
+  formatPrefix = locale$1.formatPrefix;
+  return locale$1;
+}
+
+var precisionFixed = function(step) {
+  return Math.max(0, -exponent$1(Math.abs(step)));
+};
+
+var precisionPrefix = function(step, value) {
+  return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent$1(value) / 3))) * 3 - exponent$1(Math.abs(step)));
+};
+
+var precisionRound = function(step, max) {
+  step = Math.abs(step), max = Math.abs(max) - step;
+  return Math.max(0, exponent$1(max) - exponent$1(step)) + 1;
+};
+
+var tickFormat = function(domain, count, specifier) {
+  var start = domain[0],
+      stop = domain[domain.length - 1],
+      step = tickStep(start, stop, count == null ? 10 : count),
+      precision;
+  specifier = formatSpecifier(specifier == null ? ",f" : specifier);
+  switch (specifier.type) {
+    case "s": {
+      var value = Math.max(Math.abs(start), Math.abs(stop));
+      if (specifier.precision == null && !isNaN(precision = precisionPrefix(step, value))) specifier.precision = precision;
+      return formatPrefix(specifier, value);
+    }
+    case "":
+    case "e":
+    case "g":
+    case "p":
+    case "r": {
+      if (specifier.precision == null && !isNaN(precision = precisionRound(step, Math.max(Math.abs(start), Math.abs(stop))))) specifier.precision = precision - (specifier.type === "e");
+      break;
+    }
+    case "f":
+    case "%": {
+      if (specifier.precision == null && !isNaN(precision = precisionFixed(step))) specifier.precision = precision - (specifier.type === "%") * 2;
+      break;
+    }
+  }
+  return format(specifier);
+};
+
+function linearish(scale) {
+  var domain = scale.domain;
+
+  scale.ticks = function(count) {
+    var d = domain();
+    return ticks(d[0], d[d.length - 1], count == null ? 10 : count);
+  };
+
+  scale.tickFormat = function(count, specifier) {
+    return tickFormat(domain(), count, specifier);
+  };
+
+  scale.nice = function(count) {
+    var d = domain(),
+        i = d.length - 1,
+        n = count == null ? 10 : count,
+        start = d[0],
+        stop = d[i],
+        step = tickStep(start, stop, n);
+
+    if (step) {
+      step = tickStep(Math.floor(start / step) * step, Math.ceil(stop / step) * step, n);
+      d[0] = Math.floor(start / step) * step;
+      d[i] = Math.ceil(stop / step) * step;
+      domain(d);
+    }
+
+    return scale;
+  };
+
+  return scale;
+}
+
+function linear$2() {
+  var scale = continuous(deinterpolateLinear, reinterpolate);
+
+  scale.copy = function() {
+    return copy(scale, linear$2());
+  };
+
+  return linearish(scale);
+}
+
+function identity$3() {
+  var domain = [0, 1];
+
+  function scale(x) {
+    return +x;
+  }
+
+  scale.invert = scale;
+
+  scale.domain = scale.range = function(_) {
+    return arguments.length ? (domain = map$3.call(_, number$1), scale) : domain.slice();
+  };
+
+  scale.copy = function() {
+    return identity$3().domain(domain);
+  };
+
+  return linearish(scale);
+}
+
+var nice = function(domain, interval) {
+  domain = domain.slice();
+
+  var i0 = 0,
+      i1 = domain.length - 1,
+      x0 = domain[i0],
+      x1 = domain[i1],
+      t;
+
+  if (x1 < x0) {
+    t = i0, i0 = i1, i1 = t;
+    t = x0, x0 = x1, x1 = t;
+  }
+
+  domain[i0] = interval.floor(x0);
+  domain[i1] = interval.ceil(x1);
+  return domain;
+};
+
+function deinterpolate(a, b) {
+  return (b = Math.log(b / a))
+      ? function(x) { return Math.log(x / a) / b; }
+      : constant$3(b);
+}
+
+function reinterpolate$1(a, b) {
+  return a < 0
+      ? function(t) { return -Math.pow(-b, t) * Math.pow(-a, 1 - t); }
+      : function(t) { return Math.pow(b, t) * Math.pow(a, 1 - t); };
+}
+
+function pow10(x) {
+  return isFinite(x) ? +("1e" + x) : x < 0 ? 0 : x;
+}
+
+function powp(base) {
+  return base === 10 ? pow10
+      : base === Math.E ? Math.exp
+      : function(x) { return Math.pow(base, x); };
+}
+
+function logp(base) {
+  return base === Math.E ? Math.log
+      : base === 10 && Math.log10
+      || base === 2 && Math.log2
+      || (base = Math.log(base), function(x) { return Math.log(x) / base; });
+}
+
+function reflect(f) {
+  return function(x) {
+    return -f(-x);
+  };
+}
+
+function log() {
+  var scale = continuous(deinterpolate, reinterpolate$1).domain([1, 10]),
+      domain = scale.domain,
+      base = 10,
+      logs = logp(10),
+      pows = powp(10);
+
+  function rescale() {
+    logs = logp(base), pows = powp(base);
+    if (domain()[0] < 0) logs = reflect(logs), pows = reflect(pows);
+    return scale;
+  }
+
+  scale.base = function(_) {
+    return arguments.length ? (base = +_, rescale()) : base;
+  };
+
+  scale.domain = function(_) {
+    return arguments.length ? (domain(_), rescale()) : domain();
+  };
+
+  scale.ticks = function(count) {
+    var d = domain(),
+        u = d[0],
+        v = d[d.length - 1],
+        r;
+
+    if (r = v < u) i = u, u = v, v = i;
+
+    var i = logs(u),
+        j = logs(v),
+        p,
+        k,
+        t,
+        n = count == null ? 10 : +count,
+        z = [];
+
+    if (!(base % 1) && j - i < n) {
+      i = Math.round(i) - 1, j = Math.round(j) + 1;
+      if (u > 0) for (; i < j; ++i) {
+        for (k = 1, p = pows(i); k < base; ++k) {
+          t = p * k;
+          if (t < u) continue;
+          if (t > v) break;
+          z.push(t);
+        }
+      } else for (; i < j; ++i) {
+        for (k = base - 1, p = pows(i); k >= 1; --k) {
+          t = p * k;
+          if (t < u) continue;
+          if (t > v) break;
+          z.push(t);
+        }
+      }
+    } else {
+      z = ticks(i, j, Math.min(j - i, n)).map(pows);
+    }
+
+    return r ? z.reverse() : z;
+  };
+
+  scale.tickFormat = function(count, specifier) {
+    if (specifier == null) specifier = base === 10 ? ".0e" : ",";
+    if (typeof specifier !== "function") specifier = format(specifier);
+    if (count === Infinity) return specifier;
+    if (count == null) count = 10;
+    var k = Math.max(1, base * count / scale.ticks().length); // TODO fast estimate?
+    return function(d) {
+      var i = d / pows(Math.round(logs(d)));
+      if (i * base < base - 0.5) i *= base;
+      return i <= k ? specifier(d) : "";
+    };
+  };
+
+  scale.nice = function() {
+    return domain(nice(domain(), {
+      floor: function(x) { return pows(Math.floor(logs(x))); },
+      ceil: function(x) { return pows(Math.ceil(logs(x))); }
+    }));
+  };
+
+  scale.copy = function() {
+    return copy(scale, log().base(base));
+  };
+
+  return scale;
+}
+
+function raise$1(x, exponent) {
+  return x < 0 ? -Math.pow(-x, exponent) : Math.pow(x, exponent);
+}
+
+function pow() {
+  var exponent = 1,
+      scale = continuous(deinterpolate, reinterpolate),
+      domain = scale.domain;
+
+  function deinterpolate(a, b) {
+    return (b = raise$1(b, exponent) - (a = raise$1(a, exponent)))
+        ? function(x) { return (raise$1(x, exponent) - a) / b; }
+        : constant$3(b);
+  }
+
+  function reinterpolate(a, b) {
+    b = raise$1(b, exponent) - (a = raise$1(a, exponent));
+    return function(t) { return raise$1(a + b * t, 1 / exponent); };
+  }
+
+  scale.exponent = function(_) {
+    return arguments.length ? (exponent = +_, domain(domain())) : exponent;
+  };
+
+  scale.copy = function() {
+    return copy(scale, pow().exponent(exponent));
+  };
+
+  return linearish(scale);
+}
+
+function sqrt() {
+  return pow().exponent(0.5);
+}
+
+function quantile$$1() {
+  var domain = [],
+      range$$1 = [],
+      thresholds = [];
+
+  function rescale() {
+    var i = 0, n = Math.max(1, range$$1.length);
+    thresholds = new Array(n - 1);
+    while (++i < n) thresholds[i - 1] = threshold(domain, i / n);
+    return scale;
+  }
+
+  function scale(x) {
+    if (!isNaN(x = +x)) return range$$1[bisectRight(thresholds, x)];
+  }
+
+  scale.invertExtent = function(y) {
+    var i = range$$1.indexOf(y);
+    return i < 0 ? [NaN, NaN] : [
+      i > 0 ? thresholds[i - 1] : domain[0],
+      i < thresholds.length ? thresholds[i] : domain[domain.length - 1]
+    ];
+  };
+
+  scale.domain = function(_) {
+    if (!arguments.length) return domain.slice();
+    domain = [];
+    for (var i = 0, n = _.length, d; i < n; ++i) if (d = _[i], d != null && !isNaN(d = +d)) domain.push(d);
+    domain.sort(ascending);
+    return rescale();
+  };
+
+  scale.range = function(_) {
+    return arguments.length ? (range$$1 = slice$2.call(_), rescale()) : range$$1.slice();
+  };
+
+  scale.quantiles = function() {
+    return thresholds.slice();
+  };
+
+  scale.copy = function() {
+    return quantile$$1()
+        .domain(domain)
+        .range(range$$1);
+  };
+
+  return scale;
+}
+
+function quantize$1() {
+  var x0 = 0,
+      x1 = 1,
+      n = 1,
+      domain = [0.5],
+      range$$1 = [0, 1];
+
+  function scale(x) {
+    if (x <= x) return range$$1[bisectRight(domain, x, 0, n)];
+  }
+
+  function rescale() {
+    var i = -1;
+    domain = new Array(n);
+    while (++i < n) domain[i] = ((i + 1) * x1 - (i - n) * x0) / (n + 1);
+    return scale;
+  }
+
+  scale.domain = function(_) {
+    return arguments.length ? (x0 = +_[0], x1 = +_[1], rescale()) : [x0, x1];
+  };
+
+  scale.range = function(_) {
+    return arguments.length ? (n = (range$$1 = slice$2.call(_)).length - 1, rescale()) : range$$1.slice();
+  };
+
+  scale.invertExtent = function(y) {
+    var i = range$$1.indexOf(y);
+    return i < 0 ? [NaN, NaN]
+        : i < 1 ? [x0, domain[0]]
+        : i >= n ? [domain[n - 1], x1]
+        : [domain[i - 1], domain[i]];
+  };
+
+  scale.copy = function() {
+    return quantize$1()
+        .domain([x0, x1])
+        .range(range$$1);
+  };
+
+  return linearish(scale);
+}
+
+function threshold$1() {
+  var domain = [0.5],
+      range$$1 = [0, 1],
+      n = 1;
+
+  function scale(x) {
+    if (x <= x) return range$$1[bisectRight(domain, x, 0, n)];
+  }
+
+  scale.domain = function(_) {
+    return arguments.length ? (domain = slice$2.call(_), n = Math.min(domain.length, range$$1.length - 1), scale) : domain.slice();
+  };
+
+  scale.range = function(_) {
+    return arguments.length ? (range$$1 = slice$2.call(_), n = Math.min(domain.length, range$$1.length - 1), scale) : range$$1.slice();
+  };
+
+  scale.invertExtent = function(y) {
+    var i = range$$1.indexOf(y);
+    return [domain[i - 1], domain[i]];
+  };
+
+  scale.copy = function() {
+    return threshold$1()
+        .domain(domain)
+        .range(range$$1);
+  };
+
+  return scale;
+}
+
+var t0$1 = new Date;
+var t1$1 = new Date;
+
+function newInterval(floori, offseti, count, field) {
+
+  function interval(date) {
+    return floori(date = new Date(+date)), date;
+  }
+
+  interval.floor = interval;
+
+  interval.ceil = function(date) {
+    return floori(date = new Date(date - 1)), offseti(date, 1), floori(date), date;
+  };
+
+  interval.round = function(date) {
+    var d0 = interval(date),
+        d1 = interval.ceil(date);
+    return date - d0 < d1 - date ? d0 : d1;
+  };
+
+  interval.offset = function(date, step) {
+    return offseti(date = new Date(+date), step == null ? 1 : Math.floor(step)), date;
+  };
+
+  interval.range = function(start, stop, step) {
+    var range = [];
+    start = interval.ceil(start);
+    step = step == null ? 1 : Math.floor(step);
+    if (!(start < stop) || !(step > 0)) return range; // also handles Invalid Date
+    do range.push(new Date(+start)); while (offseti(start, step), floori(start), start < stop)
+    return range;
+  };
+
+  interval.filter = function(test) {
+    return newInterval(function(date) {
+      if (date >= date) while (floori(date), !test(date)) date.setTime(date - 1);
+    }, function(date, step) {
+      if (date >= date) while (--step >= 0) while (offseti(date, 1), !test(date)) {} // eslint-disable-line no-empty
+    });
+  };
+
+  if (count) {
+    interval.count = function(start, end) {
+      t0$1.setTime(+start), t1$1.setTime(+end);
+      floori(t0$1), floori(t1$1);
+      return Math.floor(count(t0$1, t1$1));
+    };
+
+    interval.every = function(step) {
+      step = Math.floor(step);
+      return !isFinite(step) || !(step > 0) ? null
+          : !(step > 1) ? interval
+          : interval.filter(field
+              ? function(d) { return field(d) % step === 0; }
+              : function(d) { return interval.count(0, d) % step === 0; });
+    };
+  }
+
+  return interval;
+}
+
+var millisecond = newInterval(function() {
+  // noop
+}, function(date, step) {
+  date.setTime(+date + step);
+}, function(start, end) {
+  return end - start;
+});
+
+// An optimized implementation for this simple case.
+millisecond.every = function(k) {
+  k = Math.floor(k);
+  if (!isFinite(k) || !(k > 0)) return null;
+  if (!(k > 1)) return millisecond;
+  return newInterval(function(date) {
+    date.setTime(Math.floor(date / k) * k);
+  }, function(date, step) {
+    date.setTime(+date + step * k);
+  }, function(start, end) {
+    return (end - start) / k;
+  });
+};
+
+var durationSecond$1 = 1e3;
+var durationMinute$1 = 6e4;
+var durationHour$1 = 36e5;
+var durationDay$1 = 864e5;
+var durationWeek$1 = 6048e5;
+
+var second = newInterval(function(date) {
+  date.setTime(Math.floor(date / durationSecond$1) * durationSecond$1);
+}, function(date, step) {
+  date.setTime(+date + step * durationSecond$1);
+}, function(start, end) {
+  return (end - start) / durationSecond$1;
+}, function(date) {
+  return date.getUTCSeconds();
+});
+
+var minute = newInterval(function(date) {
+  date.setTime(Math.floor(date / durationMinute$1) * durationMinute$1);
+}, function(date, step) {
+  date.setTime(+date + step * durationMinute$1);
+}, function(start, end) {
+  return (end - start) / durationMinute$1;
+}, function(date) {
+  return date.getMinutes();
+});
+
+var hour = newInterval(function(date) {
+  var offset = date.getTimezoneOffset() * durationMinute$1 % durationHour$1;
+  if (offset < 0) offset += durationHour$1;
+  date.setTime(Math.floor((+date - offset) / durationHour$1) * durationHour$1 + offset);
+}, function(date, step) {
+  date.setTime(+date + step * durationHour$1);
+}, function(start, end) {
+  return (end - start) / durationHour$1;
+}, function(date) {
+  return date.getHours();
+});
+
+var day = newInterval(function(date) {
+  date.setHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setDate(date.getDate() + step);
+}, function(start, end) {
+  return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute$1) / durationDay$1;
+}, function(date) {
+  return date.getDate() - 1;
+});
+
+function weekday(i) {
+  return newInterval(function(date) {
+    date.setDate(date.getDate() - (date.getDay() + 7 - i) % 7);
+    date.setHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setDate(date.getDate() + step * 7);
+  }, function(start, end) {
+    return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute$1) / durationWeek$1;
+  });
+}
+
+var sunday = weekday(0);
+var monday = weekday(1);
+var tuesday = weekday(2);
+var wednesday = weekday(3);
+var thursday = weekday(4);
+var friday = weekday(5);
+var saturday = weekday(6);
+
+var month = newInterval(function(date) {
+  date.setDate(1);
+  date.setHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setMonth(date.getMonth() + step);
+}, function(start, end) {
+  return end.getMonth() - start.getMonth() + (end.getFullYear() - start.getFullYear()) * 12;
+}, function(date) {
+  return date.getMonth();
+});
+
+var year = newInterval(function(date) {
+  date.setMonth(0, 1);
+  date.setHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setFullYear(date.getFullYear() + step);
+}, function(start, end) {
+  return end.getFullYear() - start.getFullYear();
+}, function(date) {
+  return date.getFullYear();
+});
+
+// An optimized implementation for this simple case.
+year.every = function(k) {
+  return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : newInterval(function(date) {
+    date.setFullYear(Math.floor(date.getFullYear() / k) * k);
+    date.setMonth(0, 1);
+    date.setHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setFullYear(date.getFullYear() + step * k);
+  });
+};
+
+var utcMinute = newInterval(function(date) {
+  date.setUTCSeconds(0, 0);
+}, function(date, step) {
+  date.setTime(+date + step * durationMinute$1);
+}, function(start, end) {
+  return (end - start) / durationMinute$1;
+}, function(date) {
+  return date.getUTCMinutes();
+});
+
+var utcHour = newInterval(function(date) {
+  date.setUTCMinutes(0, 0, 0);
+}, function(date, step) {
+  date.setTime(+date + step * durationHour$1);
+}, function(start, end) {
+  return (end - start) / durationHour$1;
+}, function(date) {
+  return date.getUTCHours();
+});
+
+var utcDay = newInterval(function(date) {
+  date.setUTCHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setUTCDate(date.getUTCDate() + step);
+}, function(start, end) {
+  return (end - start) / durationDay$1;
+}, function(date) {
+  return date.getUTCDate() - 1;
+});
+
+function utcWeekday(i) {
+  return newInterval(function(date) {
+    date.setUTCDate(date.getUTCDate() - (date.getUTCDay() + 7 - i) % 7);
+    date.setUTCHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setUTCDate(date.getUTCDate() + step * 7);
+  }, function(start, end) {
+    return (end - start) / durationWeek$1;
+  });
+}
+
+var utcSunday = utcWeekday(0);
+var utcMonday = utcWeekday(1);
+var utcTuesday = utcWeekday(2);
+var utcWednesday = utcWeekday(3);
+var utcThursday = utcWeekday(4);
+var utcFriday = utcWeekday(5);
+var utcSaturday = utcWeekday(6);
+
+var utcMonth = newInterval(function(date) {
+  date.setUTCDate(1);
+  date.setUTCHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setUTCMonth(date.getUTCMonth() + step);
+}, function(start, end) {
+  return end.getUTCMonth() - start.getUTCMonth() + (end.getUTCFullYear() - start.getUTCFullYear()) * 12;
+}, function(date) {
+  return date.getUTCMonth();
+});
+
+var utcYear = newInterval(function(date) {
+  date.setUTCMonth(0, 1);
+  date.setUTCHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setUTCFullYear(date.getUTCFullYear() + step);
+}, function(start, end) {
+  return end.getUTCFullYear() - start.getUTCFullYear();
+}, function(date) {
+  return date.getUTCFullYear();
+});
+
+// An optimized implementation for this simple case.
+utcYear.every = function(k) {
+  return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : newInterval(function(date) {
+    date.setUTCFullYear(Math.floor(date.getUTCFullYear() / k) * k);
+    date.setUTCMonth(0, 1);
+    date.setUTCHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setUTCFullYear(date.getUTCFullYear() + step * k);
+  });
+};
+
+function localDate(d) {
+  if (0 <= d.y && d.y < 100) {
+    var date = new Date(-1, d.m, d.d, d.H, d.M, d.S, d.L);
+    date.setFullYear(d.y);
+    return date;
+  }
+  return new Date(d.y, d.m, d.d, d.H, d.M, d.S, d.L);
+}
+
+function utcDate(d) {
+  if (0 <= d.y && d.y < 100) {
+    var date = new Date(Date.UTC(-1, d.m, d.d, d.H, d.M, d.S, d.L));
+    date.setUTCFullYear(d.y);
+    return date;
+  }
+  return new Date(Date.UTC(d.y, d.m, d.d, d.H, d.M, d.S, d.L));
+}
+
+function newYear(y) {
+  return {y: y, m: 0, d: 1, H: 0, M: 0, S: 0, L: 0};
+}
+
+function formatLocale$1(locale) {
+  var locale_dateTime = locale.dateTime,
+      locale_date = locale.date,
+      locale_time = locale.time,
+      locale_periods = locale.periods,
+      locale_weekdays = locale.days,
+      locale_shortWeekdays = locale.shortDays,
+      locale_months = locale.months,
+      locale_shortMonths = locale.shortMonths;
+
+  var periodRe = formatRe(locale_periods),
+      periodLookup = formatLookup(locale_periods),
+      weekdayRe = formatRe(locale_weekdays),
+      weekdayLookup = formatLookup(locale_weekdays),
+      shortWeekdayRe = formatRe(locale_shortWeekdays),
+      shortWeekdayLookup = formatLookup(locale_shortWeekdays),
+      monthRe = formatRe(locale_months),
+      monthLookup = formatLookup(locale_months),
+      shortMonthRe = formatRe(locale_shortMonths),
+      shortMonthLookup = formatLookup(locale_shortMonths);
+
+  var formats = {
+    "a": formatShortWeekday,
+    "A": formatWeekday,
+    "b": formatShortMonth,
+    "B": formatMonth,
+    "c": null,
+    "d": formatDayOfMonth,
+    "e": formatDayOfMonth,
+    "H": formatHour24,
+    "I": formatHour12,
+    "j": formatDayOfYear,
+    "L": formatMilliseconds,
+    "m": formatMonthNumber,
+    "M": formatMinutes,
+    "p": formatPeriod,
+    "S": formatSeconds,
+    "U": formatWeekNumberSunday,
+    "w": formatWeekdayNumber,
+    "W": formatWeekNumberMonday,
+    "x": null,
+    "X": null,
+    "y": formatYear,
+    "Y": formatFullYear,
+    "Z": formatZone,
+    "%": formatLiteralPercent
+  };
+
+  var utcFormats = {
+    "a": formatUTCShortWeekday,
+    "A": formatUTCWeekday,
+    "b": formatUTCShortMonth,
+    "B": formatUTCMonth,
+    "c": null,
+    "d": formatUTCDayOfMonth,
+    "e": formatUTCDayOfMonth,
+    "H": formatUTCHour24,
+    "I": formatUTCHour12,
+    "j": formatUTCDayOfYear,
+    "L": formatUTCMilliseconds,
+    "m": formatUTCMonthNumber,
+    "M": formatUTCMinutes,
+    "p": formatUTCPeriod,
+    "S": formatUTCSeconds,
+    "U": formatUTCWeekNumberSunday,
+    "w": formatUTCWeekdayNumber,
+    "W": formatUTCWeekNumberMonday,
+    "x": null,
+    "X": null,
+    "y": formatUTCYear,
+    "Y": formatUTCFullYear,
+    "Z": formatUTCZone,
+    "%": formatLiteralPercent
+  };
+
+  var parses = {
+    "a": parseShortWeekday,
+    "A": parseWeekday,
+    "b": parseShortMonth,
+    "B": parseMonth,
+    "c": parseLocaleDateTime,
+    "d": parseDayOfMonth,
+    "e": parseDayOfMonth,
+    "H": parseHour24,
+    "I": parseHour24,
+    "j": parseDayOfYear,
+    "L": parseMilliseconds,
+    "m": parseMonthNumber,
+    "M": parseMinutes,
+    "p": parsePeriod,
+    "S": parseSeconds,
+    "U": parseWeekNumberSunday,
+    "w": parseWeekdayNumber,
+    "W": parseWeekNumberMonday,
+    "x": parseLocaleDate,
+    "X": parseLocaleTime,
+    "y": parseYear,
+    "Y": parseFullYear,
+    "Z": parseZone,
+    "%": parseLiteralPercent
+  };
+
+  // These recursive directive definitions must be deferred.
+  formats.x = newFormat(locale_date, formats);
+  formats.X = newFormat(locale_time, formats);
+  formats.c = newFormat(locale_dateTime, formats);
+  utcFormats.x = newFormat(locale_date, utcFormats);
+  utcFormats.X = newFormat(locale_time, utcFormats);
+  utcFormats.c = newFormat(locale_dateTime, utcFormats);
+
+  function newFormat(specifier, formats) {
+    return function(date) {
+      var string = [],
+          i = -1,
+          j = 0,
+          n = specifier.length,
+          c,
+          pad,
+          format;
+
+      if (!(date instanceof Date)) date = new Date(+date);
+
+      while (++i < n) {
+        if (specifier.charCodeAt(i) === 37) {
+          string.push(specifier.slice(j, i));
+          if ((pad = pads[c = specifier.charAt(++i)]) != null) c = specifier.charAt(++i);
+          else pad = c === "e" ? " " : "0";
+          if (format = formats[c]) c = format(date, pad);
+          string.push(c);
+          j = i + 1;
+        }
+      }
+
+      string.push(specifier.slice(j, i));
+      return string.join("");
+    };
+  }
+
+  function newParse(specifier, newDate) {
+    return function(string) {
+      var d = newYear(1900),
+          i = parseSpecifier(d, specifier, string += "", 0);
+      if (i != string.length) return null;
+
+      // The am-pm flag is 0 for AM, and 1 for PM.
+      if ("p" in d) d.H = d.H % 12 + d.p * 12;
+
+      // Convert day-of-week and week-of-year to day-of-year.
+      if ("W" in d || "U" in d) {
+        if (!("w" in d)) d.w = "W" in d ? 1 : 0;
+        var day$$1 = "Z" in d ? utcDate(newYear(d.y)).getUTCDay() : newDate(newYear(d.y)).getDay();
+        d.m = 0;
+        d.d = "W" in d ? (d.w + 6) % 7 + d.W * 7 - (day$$1 + 5) % 7 : d.w + d.U * 7 - (day$$1 + 6) % 7;
+      }
+
+      // If a time zone is specified, all fields are interpreted as UTC and then
+      // offset according to the specified time zone.
+      if ("Z" in d) {
+        d.H += d.Z / 100 | 0;
+        d.M += d.Z % 100;
+        return utcDate(d);
+      }
+
+      // Otherwise, all fields are in local time.
+      return newDate(d);
+    };
+  }
+
+  function parseSpecifier(d, specifier, string, j) {
+    var i = 0,
+        n = specifier.length,
+        m = string.length,
+        c,
+        parse;
+
+    while (i < n) {
+      if (j >= m) return -1;
+      c = specifier.charCodeAt(i++);
+      if (c === 37) {
+        c = specifier.charAt(i++);
+        parse = parses[c in pads ? specifier.charAt(i++) : c];
+        if (!parse || ((j = parse(d, string, j)) < 0)) return -1;
+      } else if (c != string.charCodeAt(j++)) {
+        return -1;
+      }
+    }
+
+    return j;
+  }
+
+  function parsePeriod(d, string, i) {
+    var n = periodRe.exec(string.slice(i));
+    return n ? (d.p = periodLookup[n[0].toLowerCase()], i + n[0].length) : -1;
+  }
+
+  function parseShortWeekday(d, string, i) {
+    var n = shortWeekdayRe.exec(string.slice(i));
+    return n ? (d.w = shortWeekdayLookup[n[0].toLowerCase()], i + n[0].length) : -1;
+  }
+
+  function parseWeekday(d, string, i) {
+    var n = weekdayRe.exec(string.slice(i));
+    return n ? (d.w = weekdayLookup[n[0].toLowerCase()], i + n[0].length) : -1;
+  }
+
+  function parseShortMonth(d, string, i) {
+    var n = shortMonthRe.exec(string.slice(i));
+    return n ? (d.m = shortMonthLookup[n[0].toLowerCase()], i + n[0].length) : -1;
+  }
+
+  function parseMonth(d, string, i) {
+    var n = monthRe.exec(string.slice(i));
+    return n ? (d.m = monthLookup[n[0].toLowerCase()], i + n[0].length) : -1;
+  }
+
+  function parseLocaleDateTime(d, string, i) {
+    return parseSpecifier(d, locale_dateTime, string, i);
+  }
+
+  function parseLocaleDate(d, string, i) {
+    return parseSpecifier(d, locale_date, string, i);
+  }
+
+  function parseLocaleTime(d, string, i) {
+    return parseSpecifier(d, locale_time, string, i);
+  }
+
+  function formatShortWeekday(d) {
+    return locale_shortWeekdays[d.getDay()];
+  }
+
+  function formatWeekday(d) {
+    return locale_weekdays[d.getDay()];
+  }
+
+  function formatShortMonth(d) {
+    return locale_shortMonths[d.getMonth()];
+  }
+
+  function formatMonth(d) {
+    return locale_months[d.getMonth()];
+  }
+
+  function formatPeriod(d) {
+    return locale_periods[+(d.getHours() >= 12)];
+  }
+
+  function formatUTCShortWeekday(d) {
+    return locale_shortWeekdays[d.getUTCDay()];
+  }
+
+  function formatUTCWeekday(d) {
+    return locale_weekdays[d.getUTCDay()];
+  }
+
+  function formatUTCShortMonth(d) {
+    return locale_shortMonths[d.getUTCMonth()];
+  }
+
+  function formatUTCMonth(d) {
+    return locale_months[d.getUTCMonth()];
+  }
+
+  function formatUTCPeriod(d) {
+    return locale_periods[+(d.getUTCHours() >= 12)];
+  }
+
+  return {
+    format: function(specifier) {
+      var f = newFormat(specifier += "", formats);
+      f.toString = function() { return specifier; };
+      return f;
+    },
+    parse: function(specifier) {
+      var p = newParse(specifier += "", localDate);
+      p.toString = function() { return specifier; };
+      return p;
+    },
+    utcFormat: function(specifier) {
+      var f = newFormat(specifier += "", utcFormats);
+      f.toString = function() { return specifier; };
+      return f;
+    },
+    utcParse: function(specifier) {
+      var p = newParse(specifier, utcDate);
+      p.toString = function() { return specifier; };
+      return p;
+    }
+  };
+}
+
+var pads = {"-": "", "_": " ", "0": "0"};
+var numberRe = /^\s*\d+/;
+var percentRe = /^%/;
+var requoteRe = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
+
+function pad(value, fill, width) {
+  var sign = value < 0 ? "-" : "",
+      string = (sign ? -value : value) + "",
+      length = string.length;
+  return sign + (length < width ? new Array(width - length + 1).join(fill) + string : string);
+}
+
+function requote(s) {
+  return s.replace(requoteRe, "\\$&");
+}
+
+function formatRe(names) {
+  return new RegExp("^(?:" + names.map(requote).join("|") + ")", "i");
+}
+
+function formatLookup(names) {
+  var map = {}, i = -1, n = names.length;
+  while (++i < n) map[names[i].toLowerCase()] = i;
+  return map;
+}
+
+function parseWeekdayNumber(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 1));
+  return n ? (d.w = +n[0], i + n[0].length) : -1;
+}
+
+function parseWeekNumberSunday(d, string, i) {
+  var n = numberRe.exec(string.slice(i));
+  return n ? (d.U = +n[0], i + n[0].length) : -1;
+}
+
+function parseWeekNumberMonday(d, string, i) {
+  var n = numberRe.exec(string.slice(i));
+  return n ? (d.W = +n[0], i + n[0].length) : -1;
+}
+
+function parseFullYear(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 4));
+  return n ? (d.y = +n[0], i + n[0].length) : -1;
+}
+
+function parseYear(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.y = +n[0] + (+n[0] > 68 ? 1900 : 2000), i + n[0].length) : -1;
+}
+
+function parseZone(d, string, i) {
+  var n = /^(Z)|([+-]\d\d)(?:\:?(\d\d))?/.exec(string.slice(i, i + 6));
+  return n ? (d.Z = n[1] ? 0 : -(n[2] + (n[3] || "00")), i + n[0].length) : -1;
+}
+
+function parseMonthNumber(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.m = n[0] - 1, i + n[0].length) : -1;
+}
+
+function parseDayOfMonth(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.d = +n[0], i + n[0].length) : -1;
+}
+
+function parseDayOfYear(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 3));
+  return n ? (d.m = 0, d.d = +n[0], i + n[0].length) : -1;
+}
+
+function parseHour24(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.H = +n[0], i + n[0].length) : -1;
+}
+
+function parseMinutes(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.M = +n[0], i + n[0].length) : -1;
+}
+
+function parseSeconds(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.S = +n[0], i + n[0].length) : -1;
+}
+
+function parseMilliseconds(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 3));
+  return n ? (d.L = +n[0], i + n[0].length) : -1;
+}
+
+function parseLiteralPercent(d, string, i) {
+  var n = percentRe.exec(string.slice(i, i + 1));
+  return n ? i + n[0].length : -1;
+}
+
+function formatDayOfMonth(d, p) {
+  return pad(d.getDate(), p, 2);
+}
+
+function formatHour24(d, p) {
+  return pad(d.getHours(), p, 2);
+}
+
+function formatHour12(d, p) {
+  return pad(d.getHours() % 12 || 12, p, 2);
+}
+
+function formatDayOfYear(d, p) {
+  return pad(1 + day.count(year(d), d), p, 3);
+}
+
+function formatMilliseconds(d, p) {
+  return pad(d.getMilliseconds(), p, 3);
+}
+
+function formatMonthNumber(d, p) {
+  return pad(d.getMonth() + 1, p, 2);
+}
+
+function formatMinutes(d, p) {
+  return pad(d.getMinutes(), p, 2);
+}
+
+function formatSeconds(d, p) {
+  return pad(d.getSeconds(), p, 2);
+}
+
+function formatWeekNumberSunday(d, p) {
+  return pad(sunday.count(year(d), d), p, 2);
+}
+
+function formatWeekdayNumber(d) {
+  return d.getDay();
+}
+
+function formatWeekNumberMonday(d, p) {
+  return pad(monday.count(year(d), d), p, 2);
+}
+
+function formatYear(d, p) {
+  return pad(d.getFullYear() % 100, p, 2);
+}
+
+function formatFullYear(d, p) {
+  return pad(d.getFullYear() % 10000, p, 4);
+}
+
+function formatZone(d) {
+  var z = d.getTimezoneOffset();
+  return (z > 0 ? "-" : (z *= -1, "+"))
+      + pad(z / 60 | 0, "0", 2)
+      + pad(z % 60, "0", 2);
+}
+
+function formatUTCDayOfMonth(d, p) {
+  return pad(d.getUTCDate(), p, 2);
+}
+
+function formatUTCHour24(d, p) {
+  return pad(d.getUTCHours(), p, 2);
+}
+
+function formatUTCHour12(d, p) {
+  return pad(d.getUTCHours() % 12 || 12, p, 2);
+}
+
+function formatUTCDayOfYear(d, p) {
+  return pad(1 + utcDay.count(utcYear(d), d), p, 3);
+}
+
+function formatUTCMilliseconds(d, p) {
+  return pad(d.getUTCMilliseconds(), p, 3);
+}
+
+function formatUTCMonthNumber(d, p) {
+  return pad(d.getUTCMonth() + 1, p, 2);
+}
+
+function formatUTCMinutes(d, p) {
+  return pad(d.getUTCMinutes(), p, 2);
+}
+
+function formatUTCSeconds(d, p) {
+  return pad(d.getUTCSeconds(), p, 2);
+}
+
+function formatUTCWeekNumberSunday(d, p) {
+  return pad(utcSunday.count(utcYear(d), d), p, 2);
+}
+
+function formatUTCWeekdayNumber(d) {
+  return d.getUTCDay();
+}
+
+function formatUTCWeekNumberMonday(d, p) {
+  return pad(utcMonday.count(utcYear(d), d), p, 2);
+}
+
+function formatUTCYear(d, p) {
+  return pad(d.getUTCFullYear() % 100, p, 2);
+}
+
+function formatUTCFullYear(d, p) {
+  return pad(d.getUTCFullYear() % 10000, p, 4);
+}
+
+function formatUTCZone() {
+  return "+0000";
+}
+
+function formatLiteralPercent() {
+  return "%";
+}
+
+var locale$2;
+var timeFormat;
+var timeParse;
+var utcFormat;
+var utcParse;
+
+defaultLocale$1({
+  dateTime: "%x, %X",
+  date: "%-m/%-d/%Y",
+  time: "%-I:%M:%S %p",
+  periods: ["AM", "PM"],
+  days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+  shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+  shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+});
+
+function defaultLocale$1(definition) {
+  locale$2 = formatLocale$1(definition);
+  timeFormat = locale$2.format;
+  timeParse = locale$2.parse;
+  utcFormat = locale$2.utcFormat;
+  utcParse = locale$2.utcParse;
+  return locale$2;
+}
+
+var isoSpecifier = "%Y-%m-%dT%H:%M:%S.%LZ";
+
+function formatIsoNative(date) {
+  return date.toISOString();
+}
+
+var formatIso = Date.prototype.toISOString
+    ? formatIsoNative
+    : utcFormat(isoSpecifier);
+
+function parseIsoNative(string) {
+  var date = new Date(string);
+  return isNaN(date) ? null : date;
+}
+
+var parseIso = +new Date("2000-01-01T00:00:00.000Z")
+    ? parseIsoNative
+    : utcParse(isoSpecifier);
+
+var durationSecond = 1000;
+var durationMinute = durationSecond * 60;
+var durationHour = durationMinute * 60;
+var durationDay = durationHour * 24;
+var durationWeek = durationDay * 7;
+var durationMonth = durationDay * 30;
+var durationYear = durationDay * 365;
+
+function date$1(t) {
+  return new Date(t);
+}
+
+function number$2(t) {
+  return t instanceof Date ? +t : +new Date(+t);
+}
+
+function calendar(year$$1, month$$1, week, day$$1, hour$$1, minute$$1, second$$1, millisecond$$1, format) {
+  var scale = continuous(deinterpolateLinear, reinterpolate),
+      invert = scale.invert,
+      domain = scale.domain;
+
+  var formatMillisecond = format(".%L"),
+      formatSecond = format(":%S"),
+      formatMinute = format("%I:%M"),
+      formatHour = format("%I %p"),
+      formatDay = format("%a %d"),
+      formatWeek = format("%b %d"),
+      formatMonth = format("%B"),
+      formatYear = format("%Y");
+
+  var tickIntervals = [
+    [second$$1,  1,      durationSecond],
+    [second$$1,  5,  5 * durationSecond],
+    [second$$1, 15, 15 * durationSecond],
+    [second$$1, 30, 30 * durationSecond],
+    [minute$$1,  1,      durationMinute],
+    [minute$$1,  5,  5 * durationMinute],
+    [minute$$1, 15, 15 * durationMinute],
+    [minute$$1, 30, 30 * durationMinute],
+    [  hour$$1,  1,      durationHour  ],
+    [  hour$$1,  3,  3 * durationHour  ],
+    [  hour$$1,  6,  6 * durationHour  ],
+    [  hour$$1, 12, 12 * durationHour  ],
+    [   day$$1,  1,      durationDay   ],
+    [   day$$1,  2,  2 * durationDay   ],
+    [  week,  1,      durationWeek  ],
+    [ month$$1,  1,      durationMonth ],
+    [ month$$1,  3,  3 * durationMonth ],
+    [  year$$1,  1,      durationYear  ]
+  ];
+
+  function tickFormat(date) {
+    return (second$$1(date) < date ? formatMillisecond
+        : minute$$1(date) < date ? formatSecond
+        : hour$$1(date) < date ? formatMinute
+        : day$$1(date) < date ? formatHour
+        : month$$1(date) < date ? (week(date) < date ? formatDay : formatWeek)
+        : year$$1(date) < date ? formatMonth
+        : formatYear)(date);
+  }
+
+  function tickInterval(interval, start, stop, step) {
+    if (interval == null) interval = 10;
+
+    // If a desired tick count is specified, pick a reasonable tick interval
+    // based on the extent of the domain and a rough estimate of tick size.
+    // Otherwise, assume interval is already a time interval and use it.
+    if (typeof interval === "number") {
+      var target = Math.abs(stop - start) / interval,
+          i = bisector(function(i) { return i[2]; }).right(tickIntervals, target);
+      if (i === tickIntervals.length) {
+        step = tickStep(start / durationYear, stop / durationYear, interval);
+        interval = year$$1;
+      } else if (i) {
+        i = tickIntervals[target / tickIntervals[i - 1][2] < tickIntervals[i][2] / target ? i - 1 : i];
+        step = i[1];
+        interval = i[0];
+      } else {
+        step = tickStep(start, stop, interval);
+        interval = millisecond$$1;
+      }
+    }
+
+    return step == null ? interval : interval.every(step);
+  }
+
+  scale.invert = function(y) {
+    return new Date(invert(y));
+  };
+
+  scale.domain = function(_) {
+    return arguments.length ? domain(map$3.call(_, number$2)) : domain().map(date$1);
+  };
+
+  scale.ticks = function(interval, step) {
+    var d = domain(),
+        t0 = d[0],
+        t1 = d[d.length - 1],
+        r = t1 < t0,
+        t;
+    if (r) t = t0, t0 = t1, t1 = t;
+    t = tickInterval(interval, t0, t1, step);
+    t = t ? t.range(t0, t1 + 1) : []; // inclusive stop
+    return r ? t.reverse() : t;
+  };
+
+  scale.tickFormat = function(count, specifier) {
+    return specifier == null ? tickFormat : format(specifier);
+  };
+
+  scale.nice = function(interval, step) {
+    var d = domain();
+    return (interval = tickInterval(interval, d[0], d[d.length - 1], step))
+        ? domain(nice(d, interval))
+        : scale;
+  };
+
+  scale.copy = function() {
+    return copy(scale, calendar(year$$1, month$$1, week, day$$1, hour$$1, minute$$1, second$$1, millisecond$$1, format));
+  };
+
+  return scale;
+}
+
+var time = function() {
+  return calendar(year, month, sunday, day, hour, minute, second, millisecond, timeFormat).domain([new Date(2000, 0, 1), new Date(2000, 0, 2)]);
+};
+
+var utcTime = function() {
+  return calendar(utcYear, utcMonth, utcSunday, utcDay, utcHour, utcMinute, second, millisecond, utcFormat).domain([Date.UTC(2000, 0, 1), Date.UTC(2000, 0, 2)]);
+};
+
+var colors = function(s) {
+  return s.match(/.{6}/g).map(function(x) {
+    return "#" + x;
+  });
+};
+
+var category10 = colors("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf");
+
+var category20b = colors("393b795254a36b6ecf9c9ede6379398ca252b5cf6bcedb9c8c6d31bd9e39e7ba52e7cb94843c39ad494ad6616be7969c7b4173a55194ce6dbdde9ed6");
+
+var category20c = colors("3182bd6baed69ecae1c6dbefe6550dfd8d3cfdae6bfdd0a231a35474c476a1d99bc7e9c0756bb19e9ac8bcbddcdadaeb636363969696bdbdbdd9d9d9");
+
+var category20 = colors("1f77b4aec7e8ff7f0effbb782ca02c98df8ad62728ff98969467bdc5b0d58c564bc49c94e377c2f7b6d27f7f7fc7c7c7bcbd22dbdb8d17becf9edae5");
+
+var cubehelix$3 = cubehelixLong(cubehelix(300, 0.5, 0.0), cubehelix(-240, 0.5, 1.0));
+
+var warm = cubehelixLong(cubehelix(-100, 0.75, 0.35), cubehelix(80, 1.50, 0.8));
+
+var cool = cubehelixLong(cubehelix(260, 0.75, 0.35), cubehelix(80, 1.50, 0.8));
+
+var rainbow = cubehelix();
+
+var rainbow$1 = function(t) {
+  if (t < 0 || t > 1) t -= Math.floor(t);
+  var ts = Math.abs(t - 0.5);
+  rainbow.h = 360 * t - 100;
+  rainbow.s = 1.5 - 1.5 * ts;
+  rainbow.l = 0.8 - 0.9 * ts;
+  return rainbow + "";
+};
+
+function ramp(range) {
+  var n = range.length;
+  return function(t) {
+    return range[Math.max(0, Math.min(n - 1, Math.floor(t * n)))];
+  };
+}
+
+var viridis = ramp(colors("44015444025645045745055946075a46085c460a5d460b5e470d60470e6147106347116447136548146748166848176948186a481a6c481b6d481c6e481d6f481f70482071482173482374482475482576482677482878482979472a7a472c7a472d7b472e7c472f7d46307e46327e46337f463480453581453781453882443983443a83443b84433d84433e85423f854240864241864142874144874045884046883f47883f48893e49893e4a893e4c8a3d4d8a3d4e8a3c4f8a3c508b3b518b3b528b3a538b3a548c39558c39568c38588c38598c375a8c375b8d365c8d365d8d355e8d355f8d34608d34618d33628d33638d32648e32658e31668e31678e31688e30698e306a8e2f6b8e2f6c8e2e6d8e2e6e8e2e6f8e2d708e2d718e2c718e2c728e2c738e2b748e2b758e2a768e2a778e2a788e29798e297a8e297b8e287c8e287d8e277e8e277f8e27808e26818e26828e26828e25838e25848e25858e24868e24878e23888e23898e238a8d228b8d228c8d228d8d218e8d218f8d21908d21918c20928c20928c20938c1f948c1f958b1f968b1f978b1f988b1f998a1f9a8a1e9b8a1e9c891e9d891f9e891f9f881fa0881fa1881fa1871fa28720a38620a48621a58521a68522a78522a88423a98324aa8325ab8225ac8226ad8127ad8128ae8029af7f2ab07f2cb17e2db27d2eb37c2fb47c31b57b32b67a34b67935b77937b87838b9773aba763bbb753dbc743fbc7340bd7242be7144bf7046c06f48c16e4ac16d4cc26c4ec36b50c46a52c56954c56856c66758c7655ac8645cc8635ec96260ca6063cb5f65cb5e67cc5c69cd5b6ccd5a6ece5870cf5773d05675d05477d1537ad1517cd2507fd34e81d34d84d44b86d54989d5488bd6468ed64590d74393d74195d84098d83e9bd93c9dd93ba0da39a2da37a5db36a8db34aadc32addc30b0dd2fb2dd2db5de2bb8de29bade28bddf26c0df25c2df23c5e021c8e020cae11fcde11dd0e11cd2e21bd5e21ad8e219dae319dde318dfe318e2e418e5e419e7e419eae51aece51befe51cf1e51df4e61ef6e620f8e621fbe723fde725"));
+
+var magma = ramp(colors("00000401000501010601010802010902020b02020d03030f03031204041405041606051806051a07061c08071e0907200a08220b09240c09260d0a290e0b2b100b2d110c2f120d31130d34140e36150e38160f3b180f3d19103f1a10421c10441d11471e114920114b21114e22115024125325125527125829115a2a115c2c115f2d11612f116331116533106734106936106b38106c390f6e3b0f703d0f713f0f72400f74420f75440f764510774710784910784a10794c117a4e117b4f127b51127c52137c54137d56147d57157e59157e5a167e5c167f5d177f5f187f601880621980641a80651a80671b80681c816a1c816b1d816d1d816e1e81701f81721f817320817521817621817822817922827b23827c23827e24828025828125818326818426818627818827818928818b29818c29818e2a81902a81912b81932b80942c80962c80982d80992d809b2e7f9c2e7f9e2f7fa02f7fa1307ea3307ea5317ea6317da8327daa337dab337cad347cae347bb0357bb2357bb3367ab5367ab73779b83779ba3878bc3978bd3977bf3a77c03a76c23b75c43c75c53c74c73d73c83e73ca3e72cc3f71cd4071cf4070d0416fd2426fd3436ed5446dd6456cd8456cd9466bdb476adc4869de4968df4a68e04c67e24d66e34e65e44f64e55064e75263e85362e95462ea5661eb5760ec5860ed5a5fee5b5eef5d5ef05f5ef1605df2625df2645cf3655cf4675cf4695cf56b5cf66c5cf66e5cf7705cf7725cf8745cf8765cf9785df9795df97b5dfa7d5efa7f5efa815ffb835ffb8560fb8761fc8961fc8a62fc8c63fc8e64fc9065fd9266fd9467fd9668fd9869fd9a6afd9b6bfe9d6cfe9f6dfea16efea36ffea571fea772fea973feaa74feac76feae77feb078feb27afeb47bfeb67cfeb77efeb97ffebb81febd82febf84fec185fec287fec488fec68afec88cfeca8dfecc8ffecd90fecf92fed194fed395fed597fed799fed89afdda9cfddc9efddea0fde0a1fde2a3fde3a5fde5a7fde7a9fde9aafdebacfcecaefceeb0fcf0b2fcf2b4fcf4b6fcf6b8fcf7b9fcf9bbfcfbbdfcfdbf"));
+
+var inferno = ramp(colors("00000401000501010601010802010a02020c02020e03021004031204031405041706041907051b08051d09061f0a07220b07240c08260d08290e092b10092d110a30120a32140b34150b37160b39180c3c190c3e1b0c411c0c431e0c451f0c48210c4a230c4c240c4f260c51280b53290b552b0b572d0b592f0a5b310a5c320a5e340a5f3609613809623909633b09643d09653e0966400a67420a68440a68450a69470b6a490b6a4a0c6b4c0c6b4d0d6c4f0d6c510e6c520e6d540f6d550f6d57106e59106e5a116e5c126e5d126e5f136e61136e62146e64156e65156e67166e69166e6a176e6c186e6d186e6f196e71196e721a6e741a6e751b6e771c6d781c6d7a1d6d7c1d6d7d1e6d7f1e6c801f6c82206c84206b85216b87216b88226a8a226a8c23698d23698f24699025689225689326679526679727669827669a28659b29649d29649f2a63a02a63a22b62a32c61a52c60a62d60a82e5fa92e5eab2f5ead305dae305cb0315bb1325ab3325ab43359b63458b73557b93556ba3655bc3754bd3853bf3952c03a51c13a50c33b4fc43c4ec63d4dc73e4cc83f4bca404acb4149cc4248ce4347cf4446d04545d24644d34743d44842d54a41d74b3fd84c3ed94d3dda4e3cdb503bdd513ade5238df5337e05536e15635e25734e35933e45a31e55c30e65d2fe75e2ee8602de9612bea632aeb6429eb6628ec6726ed6925ee6a24ef6c23ef6e21f06f20f1711ff1731df2741cf3761bf37819f47918f57b17f57d15f67e14f68013f78212f78410f8850ff8870ef8890cf98b0bf98c0af98e09fa9008fa9207fa9407fb9606fb9706fb9906fb9b06fb9d07fc9f07fca108fca309fca50afca60cfca80dfcaa0ffcac11fcae12fcb014fcb216fcb418fbb61afbb81dfbba1ffbbc21fbbe23fac026fac228fac42afac62df9c72ff9c932f9cb35f8cd37f8cf3af7d13df7d340f6d543f6d746f5d949f5db4cf4dd4ff4df53f4e156f3e35af3e55df2e661f2e865f2ea69f1ec6df1ed71f1ef75f1f179f2f27df2f482f3f586f3f68af4f88ef5f992f6fa96f8fb9af9fc9dfafda1fcffa4"));
+
+var plasma = ramp(colors("0d088710078813078916078a19068c1b068d1d068e20068f2206902406912605912805922a05932c05942e05952f059631059733059735049837049938049a3a049a3c049b3e049c3f049c41049d43039e44039e46039f48039f4903a04b03a14c02a14e02a25002a25102a35302a35502a45601a45801a45901a55b01a55c01a65e01a66001a66100a76300a76400a76600a76700a86900a86a00a86c00a86e00a86f00a87100a87201a87401a87501a87701a87801a87a02a87b02a87d03a87e03a88004a88104a78305a78405a78606a68707a68808a68a09a58b0aa58d0ba58e0ca48f0da4910ea3920fa39410a29511a19613a19814a099159f9a169f9c179e9d189d9e199da01a9ca11b9ba21d9aa31e9aa51f99a62098a72197a82296aa2395ab2494ac2694ad2793ae2892b02991b12a90b22b8fb32c8eb42e8db52f8cb6308bb7318ab83289ba3388bb3488bc3587bd3786be3885bf3984c03a83c13b82c23c81c33d80c43e7fc5407ec6417dc7427cc8437bc9447aca457acb4679cc4778cc4977cd4a76ce4b75cf4c74d04d73d14e72d24f71d35171d45270d5536fd5546ed6556dd7566cd8576bd9586ada5a6ada5b69db5c68dc5d67dd5e66de5f65de6164df6263e06363e16462e26561e26660e3685fe4695ee56a5de56b5de66c5ce76e5be76f5ae87059e97158e97257ea7457eb7556eb7655ec7754ed7953ed7a52ee7b51ef7c51ef7e50f07f4ff0804ef1814df1834cf2844bf3854bf3874af48849f48948f58b47f58c46f68d45f68f44f79044f79143f79342f89441f89540f9973ff9983ef99a3efa9b3dfa9c3cfa9e3bfb9f3afba139fba238fca338fca537fca636fca835fca934fdab33fdac33fdae32fdaf31fdb130fdb22ffdb42ffdb52efeb72dfeb82cfeba2cfebb2bfebd2afebe2afec029fdc229fdc328fdc527fdc627fdc827fdca26fdcb26fccd25fcce25fcd025fcd225fbd324fbd524fbd724fad824fada24f9dc24f9dd25f8df25f8e125f7e225f7e425f6e626f6e826f5e926f5eb27f4ed27f3ee27f3f027f2f227f1f426f1f525f0f724f0f921"));
+
+function sequential(interpolator) {
+  var x0 = 0,
+      x1 = 1,
+      clamp = false;
+
+  function scale(x) {
+    var t = (x - x0) / (x1 - x0);
+    return interpolator(clamp ? Math.max(0, Math.min(1, t)) : t);
+  }
+
+  scale.domain = function(_) {
+    return arguments.length ? (x0 = +_[0], x1 = +_[1], scale) : [x0, x1];
+  };
+
+  scale.clamp = function(_) {
+    return arguments.length ? (clamp = !!_, scale) : clamp;
+  };
+
+  scale.interpolator = function(_) {
+    return arguments.length ? (interpolator = _, scale) : interpolator;
+  };
+
+  scale.copy = function() {
+    return sequential(interpolator).domain([x0, x1]).clamp(clamp);
+  };
+
+  return linearish(scale);
+}
+
+function bullet() {
+
+    var orient = 'left',
+        reverse = false,
+        duration = 0,
+        ranges = function (d) {
+            return d.ranges;
+        },
+        markers = function (d) {
+            return d.markers;
+        },
+        measures = function (d) {
+            return d.measures;
+        },
+        width = 380,
+        height = 30,
+        tickFormat = null;
+
+    function bulletTranslate(x) {
+        return function (d) {
+            return 'translate(' + x(d) + ',0)';
+        };
+    }
+
+    function bulletWidth(x) {
+        var x0 = x(0);
+        return function (d) {
+            return Math.abs(x(d) - x0);
+        };
+    }
+
+    function bullet(g) {
+
+        g.each(function (d, i) {
+
+            var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
+                markerz = markers.call(this, d, i).slice().sort(d3.descending),
+                measurez = measures.call(this, d, i).slice().sort(d3.descending),
+                g = d3.select(this),
+
+                x1 = d3.scaleLinear()
+                .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])
+                .range(reverse ? [width, 0] : [0, width]),
+
+                x0 = this.__chart__ || d3.scaleLinear()
+                .domain([0, Infinity])
+                .range(x1.range());
+
+            this.__chart__ = x1;
+
+            var w0 = bulletWidth(x0),
+                w1 = bulletWidth(x1),
+                range = g.selectAll('rect.range').data(rangez);
+
+            range.enter().append('rect')
+                .attr('class', function (d, i) {
+                    return 'range s' + i;
+                })
+                .attr('width', w0)
+                .attr('height', height)
+                .attr('x', reverse ? x0 : 0)
+                .transition()
+                .duration(duration)
+                .attr('width', w1)
+                .attr('x', reverse ? x1 : 0);
+
+            range.transition()
+                .duration(duration)
+                .attr('x', reverse ? x1 : 0)
+                .attr('width', w1)
+                .attr('height', height);
+
+            // Update the measure rects.
+            var measure = g.selectAll('rect.measure')
+                .data(measurez);
+
+            measure.enter().append('rect')
+                .attr('class', function (d, i) {
+                    return 'measure s' + i;
+                })
+                .attr('width', w0)
+                .attr('height', height / 3)
+                .attr('x', reverse ? x0 : 0)
+                .attr('y', height / 3)
+                .transition()
+                .duration(duration)
+                .attr('width', w1)
+                .attr('x', reverse ? x1 : 0);
+
+            measure.transition()
+                .duration(duration)
+                .attr('width', w1)
+                .attr('height', height / 3)
+                .attr('x', reverse ? x1 : 0)
+                .attr('y', height / 3);
+
+            // Update the marker lines.
+            var marker = g.selectAll('line.marker')
+                .data(markerz);
+
+            marker.enter().append('line')
+                .attr('class', 'marker')
+                .attr('x1', x0)
+                .attr('x2', x0)
+                .attr('y1', height / 6)
+                .attr('y2', height * 5 / 6)
+                .transition()
+                .duration(duration)
+                .attr('x1', x1)
+                .attr('x2', x1);
+
+            marker.transition()
+                .duration(duration)
+                .attr('x1', x1)
+                .attr('x2', x1)
+                .attr('y1', height / 6)
+                .attr('y2', height * 5 / 6);
+
+            // Compute the tick format.
+            var format = tickFormat || x1.tickFormat(8);
+
+            // Update the tick groups.
+            var tick = g.selectAll('g.tick')
+                .data(x1.ticks(8), function (d) {
+                    return this.textContent || format(d);
+                });
+
+            // Initialize the ticks with the old scale, x0.
+            var tickEnter = tick.enter().append('g')
+                .attr('class', 'tick')
+                .attr('transform', bulletTranslate(x0))
+                .style('opacity', 1e-6);
+
+            tickEnter.append('line')
+                .attr('y1', height)
+                .attr('y2', height * 7 / 6);
+
+            tickEnter.append('text')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '1em')
+                .attr('y', height * 7 / 6)
+                .text(format);
+
+            // Transition the entering ticks to the new scale, x1.
+            tickEnter.transition()
+                .duration(duration)
+                .attr('transform', bulletTranslate(x1))
+                .style('opacity', 1);
+
+            // Transition the updating ticks to the new scale, x1.
+            var tickUpdate = tick.transition()
+                .duration(duration)
+                .attr('transform', bulletTranslate(x1))
+                .style('opacity', 1);
+
+            tickUpdate.select('line')
+                .attr('y1', height)
+                .attr('y2', height * 7 / 6);
+
+            tickUpdate.select('text')
+                .attr('y', height * 7 / 6);
+
+            // Transition the exiting ticks to the new scale, x1.
+            tick.exit().transition()
+                .duration(duration)
+                .attr('transform', bulletTranslate(x1))
+                .style('opacity', 1e-6)
+                .remove();
+        });
+
+        d3.timerFlush();
+    }
+
+    bullet.orient = function (x) {
+        if (!arguments.length) return orient;
+        orient = x;
+        reverse = orient === 'right' || orient === 'bottom';
+        return bullet;
+    };
+
+    bullet.ranges = function (x) {
+        if (!arguments.length) return ranges;
+        ranges = x;
+        return bullet;
+    };
+
+    bullet.markers = function (x) {
+        if (!arguments.length) return markers;
+        markers = x;
+        return bullet;
+    };
+
+    // measures (actual, forecast)
+    bullet.measures = function (x) {
+        if (!arguments.length) return measures;
+        measures = x;
+        return bullet;
+    };
+
+    bullet.width = function (x) {
+        if (!arguments.length) return width;
+        width = x;
+        return bullet;
+    };
+
+    bullet.height = function (x) {
+        if (!arguments.length) return height;
+        height = x;
+        return bullet;
+    };
+
+    bullet.tickFormat = function (x) {
+        if (!arguments.length) return tickFormat;
+        tickFormat = x;
+        return bullet;
+    };
+
+    bullet.duration = function (x) {
+        if (!arguments.length) return duration;
+        duration = x;
+        return bullet;
+    };
+
+    return bullet;
+}
+
+var version = '1.0.0';
+
 exports.bullet = bullet;
 exports.version = version;
+exports.bisect = bisectRight;
+exports.bisectRight = bisectRight;
+exports.bisectLeft = bisectLeft;
+exports.ascending = ascending;
+exports.bisector = bisector;
+exports.descending = descending;
+exports.deviation = deviation;
+exports.extent = extent;
+exports.histogram = histogram;
+exports.thresholdFreedmanDiaconis = freedmanDiaconis;
+exports.thresholdScott = scott;
+exports.thresholdSturges = sturges;
+exports.max = max;
+exports.mean = mean;
+exports.median = median;
+exports.merge = merge;
+exports.min = min;
+exports.pairs = pairs;
+exports.permute = permute;
+exports.quantile = threshold;
+exports.range = sequence;
+exports.scan = scan;
+exports.shuffle = shuffle;
+exports.sum = sum;
+exports.ticks = ticks;
+exports.tickStep = tickStep;
+exports.transpose = transpose;
+exports.variance = variance;
+exports.zip = zip;
+exports.axisTop = axisTop;
+exports.axisRight = axisRight;
+exports.axisBottom = axisBottom;
+exports.axisLeft = axisLeft;
 exports.creator = creator;
 exports.local = local;
 exports.matcher = matcher$1;
@@ -2864,6 +5923,38 @@ exports.customEvent = customEvent;
 exports.transition = transition;
 exports.active = active;
 exports.interrupt = interrupt;
+exports.now = now;
+exports.timer = timer;
+exports.timerFlush = timerFlush;
+exports.timeout = timeout$1;
+exports.interval = interval$1;
+exports.scaleBand = band;
+exports.scalePoint = point$1;
+exports.scaleIdentity = identity$3;
+exports.scaleLinear = linear$2;
+exports.scaleLog = log;
+exports.scaleOrdinal = ordinal;
+exports.scaleImplicit = implicit;
+exports.scalePow = pow;
+exports.scaleSqrt = sqrt;
+exports.scaleQuantile = quantile$$1;
+exports.scaleQuantize = quantize$1;
+exports.scaleThreshold = threshold$1;
+exports.scaleTime = time;
+exports.scaleUtc = utcTime;
+exports.schemeCategory10 = category10;
+exports.schemeCategory20b = category20b;
+exports.schemeCategory20c = category20c;
+exports.schemeCategory20 = category20;
+exports.interpolateCubehelixDefault = cubehelix$3;
+exports.interpolateRainbow = rainbow$1;
+exports.interpolateWarm = warm;
+exports.interpolateCool = cool;
+exports.interpolateViridis = viridis;
+exports.interpolateMagma = magma;
+exports.interpolateInferno = inferno;
+exports.interpolatePlasma = plasma;
+exports.scaleSequential = sequential;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
