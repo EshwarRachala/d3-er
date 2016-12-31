@@ -1,6 +1,6 @@
 # d3-er
 
-Custom d3 module created using d3-selection,d3-transition and some extra functions 
+Custom d3 module created using some d3-modules(d3-selection,d3-transition) and some extra functions 
 
 ## Installing
 
