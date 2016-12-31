@@ -4,7 +4,15 @@ Custom d3 module created using d3-selection,d3-transition and some extra functio
 
 ## Installing
 
-If you use NPM, `npm install d3-er`. Otherwise, download https://github.com/EshwarRachala/d3-er/blob/master/build/d3-er.js.
+If you use NPM, `npm install d3-er`.
+
+and require it in file :
+
+var d3 = require('d3-er/build/d3-er');
+d3.select('body').style('background-color', 'red');
+
+
+Otherwise, download https://github.com/EshwarRachala/d3-er/blob/master/build/d3-er.js.
 
 ##Test in browser
 To test clone/download and run `npm install` to install dependencies 
