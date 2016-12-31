@@ -8,8 +8,11 @@ If you use NPM, `npm install d3-er`.
 
 and require it in file :
 
+
+```js
 var d3 = require('d3-er/build/d3-er');
 d3.select('body').style('background-color', 'red');
+```
 
 
 Otherwise, download https://github.com/EshwarRachala/d3-er/blob/master/build/d3-er.js.
@@ -19,7 +22,7 @@ To test clone/download and run `npm install` to install dependencies
 and `npm run dev` to run webpack dev server
 
 ##Check examples
-`d3examples.surge.sh`
+https://d3examples.surge.sh
 
 
 ## API Reference
