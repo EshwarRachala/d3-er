@@ -40,7 +40,7 @@ https://d3examples.surge.sh
  var svg = d3.svg('body')
 ```
 
-- If any property needs to be changed 
+- If any property needs to be changed/ added
 
 ```js
 svg.style('background-color', 'lime')
