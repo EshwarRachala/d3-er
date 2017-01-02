@@ -8,10 +8,15 @@ export * from 'd3-scale'
 export {
     default as bullet
 }
-from './src/bullet'
+from './src/d3/bullet'
+
+export {
+    default as svg
+}
+from './src/d3/svg'
 
 export {
     default
     as version
 }
-from './src/version'
+from './src/d3/version'

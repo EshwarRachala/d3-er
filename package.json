@@ -22,7 +22,7 @@
   "homepage": "https://github.com/eshwarrachala/d3-er#readme",
   "scripts": {
     "pretest": "rm -rf build && mkdir build && rollup -c && uglifyjs build/d3-er.js -c -m -o build/d3-er.min.js",
-    "test": "tape 'test/**/*-test.js'",
+    "test": "faucet `find test -name '*-test.js'`",
     "postpublish": "zip -j build/d3-er.zip -- LICENSE README.md build/d3-er.js build/d3-er.min.js",
     "all": "npm run pretest && npm run test && npm run postpublish",
     "check": "npm install -g && npm link",
@@ -47,7 +47,11 @@
     "uglify-js": "2",
     "webpack": "1.14.0",
     "webpack-dev-server": "1.16.2",
-    "surge": "^0.18.0"
+    "surge": "^0.18.0",
+    "faucet": "0.0",
+    "jsdom": "^8.1.0",
+    "rollup-plugin-commonjs": "^2.2.1",
+    "tape-catch": "^1.0.4"
   },
   "dependencies": {}
 }
