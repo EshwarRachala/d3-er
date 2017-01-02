@@ -34,12 +34,16 @@ https://d3examples.surge.sh
 - Creates bullet chart 
 
 ### d3.svg
-- creates SVG element 
+- creates SVG element with default width(100%) and height(100)
 
 ```js
  var svg = d3.svg('body')
+```
+
+- If any property needs to be changed 
+
+```js
 svg.style('background-color', 'lime')
     .attr('height', 200)
 ```
-
        
