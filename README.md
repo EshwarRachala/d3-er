@@ -27,4 +27,11 @@ https://d3examples.surge.sh
 
 ## API Reference
 
-https://github.com/d3/d3/blob/master/API.md
+### d3 modules Reference
+- https://github.com/d3/d3/blob/master/API.md
+
+### d3.bullet()
+- Creates bullet chart 
+
+### d3.svg
+- creates and SVG element 
