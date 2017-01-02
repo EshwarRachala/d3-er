@@ -5648,13 +5648,13 @@ function bullet() {
         reverse = false,
         duration = 0,
         ranges = function (d) {
-            return d.ranges;
+            return d.ranges
         },
         markers = function (d) {
-            return d.markers;
+            return d.markers
         },
         measures = function (d) {
-            return d.measures;
+            return d.measures
         },
         width = 380,
         height = 30,
@@ -5662,15 +5662,15 @@ function bullet() {
 
     function bulletTranslate(x) {
         return function (d) {
-            return 'translate(' + x(d) + ',0)';
-        };
+            return 'translate(' + x(d) + ',0)'
+        }
     }
 
     function bulletWidth(x) {
         var x0 = x(0);
         return function (d) {
-            return Math.abs(x(d) - x0);
-        };
+            return Math.abs(x(d) - x0)
+        }
     }
 
     function bullet(g) {
@@ -5698,7 +5698,7 @@ function bullet() {
 
             range.enter().append('rect')
                 .attr('class', function (d, i) {
-                    return 'range s' + i;
+                    return 'range s' + i
                 })
                 .attr('width', w0)
                 .attr('height', height)
@@ -5720,7 +5720,7 @@ function bullet() {
 
             measure.enter().append('rect')
                 .attr('class', function (d, i) {
-                    return 'measure s' + i;
+                    return 'measure s' + i
                 })
                 .attr('width', w0)
                 .attr('height', height / 3)
@@ -5766,7 +5766,7 @@ function bullet() {
             // Update the tick groups.
             var tick = g.selectAll('g.tick')
                 .data(x1.ticks(8), function (d) {
-                    return this.textContent || format(d);
+                    return this.textContent || format(d)
                 });
 
             // Initialize the ticks with the old scale, x0.
@@ -5816,56 +5816,56 @@ function bullet() {
     }
 
     bullet.orient = function (x) {
-        if (!arguments.length) return orient;
+        if (!arguments.length) return orient
         orient = x;
         reverse = orient === 'right' || orient === 'bottom';
-        return bullet;
+        return bullet
     };
 
     bullet.ranges = function (x) {
-        if (!arguments.length) return ranges;
+        if (!arguments.length) return ranges
         ranges = x;
-        return bullet;
+        return bullet
     };
 
     bullet.markers = function (x) {
-        if (!arguments.length) return markers;
+        if (!arguments.length) return markers
         markers = x;
-        return bullet;
+        return bullet
     };
 
     // measures (actual, forecast)
     bullet.measures = function (x) {
-        if (!arguments.length) return measures;
+        if (!arguments.length) return measures
         measures = x;
-        return bullet;
+        return bullet
     };
 
     bullet.width = function (x) {
-        if (!arguments.length) return width;
+        if (!arguments.length) return width
         width = x;
-        return bullet;
+        return bullet
     };
 
     bullet.height = function (x) {
-        if (!arguments.length) return height;
+        if (!arguments.length) return height
         height = x;
-        return bullet;
+        return bullet
     };
 
     bullet.tickFormat = function (x) {
-        if (!arguments.length) return tickFormat;
+        if (!arguments.length) return tickFormat
         tickFormat = x;
-        return bullet;
+        return bullet
     };
 
     bullet.duration = function (x) {
-        if (!arguments.length) return duration;
+        if (!arguments.length) return duration
         duration = x;
-        return bullet;
+        return bullet
     };
 
-    return bullet;
+    return bullet
 }
 
 var version = '1.0.0';
