@@ -34,7 +34,7 @@ https://d3examples.surge.sh
 - Creates bullet chart 
 
 ### d3.svg
-- creates and SVG element 
+- creates SVG element 
 
 ```js
  var svg = d3.svg('body')
