@@ -20,7 +20,6 @@ tape('d3 can set height and width on svg element', function (test) {
 
     var svg = d3.svg('body')
 
-
     test.ok(svg, 'svg element exists')
     test.ok(svg.attr('width', '100%'), 'svg element has correct width')
     test.ok(svg.attr('height', 100), 'svg element has correct height')

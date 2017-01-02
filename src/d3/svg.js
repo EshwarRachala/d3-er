@@ -1,6 +1,6 @@
 import * as d3_selection from 'd3-selection'
 
-export default function (elem) {
+export function SVG(elem) {
 
     if (!arguments.length) return null
 
@@ -12,3 +12,5 @@ export default function (elem) {
 
     return svg
 }
+
+export default SVG

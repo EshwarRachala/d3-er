@@ -42,7 +42,8 @@
 
         var svg = d3.select('#bulletchart')
             .selectAll('svg')
-            .data(data).enter()
+            .data(data)
+            .enter()
             .append('svg')
             .attr('class', 'bullet')
             .attr('width', width + margin.left + margin.right)

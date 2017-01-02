@@ -5868,7 +5868,7 @@ function bullet() {
     return bullet
 }
 
-var svg = function (elem) {
+function SVG(elem) {
 
     if (!arguments.length) return null
 
@@ -5879,12 +5879,12 @@ var svg = function (elem) {
     svg.attr('height', 100);
 
     return svg
-};
+}
 
 var version = '1.1.0';
 
 exports.bullet = bullet;
-exports.svg = svg;
+exports.svg = SVG;
 exports.version = version;
 exports.bisect = bisectRight;
 exports.bisectRight = bisectRight;
