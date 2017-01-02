@@ -35,3 +35,11 @@ https://d3examples.surge.sh
 
 ### d3.svg
 - creates and SVG element 
+
+```js
+ var svg = d3.svg('body')
+svg.style('background-color', 'lime')
+    .attr('height', 200)
+```
+
+       
