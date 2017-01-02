@@ -92,6 +92,6 @@
         //Create a SVg and add color to it by using SVG function
 
         var svg = d3.svg('#svgEle').style('background-color', 'red')
-        svg.attr('width', 200)
+        svg.attr('height', 200)
 
     })()
