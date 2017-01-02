@@ -47,7 +47,25 @@
 	(function () {
 	    'use strict';
 
-	    d3.select('#divHello').append("h1").text('Hello').style("text-align", "center").style("line-height", "100px").style("font-size", "100px").style("transform", "rotate(-180deg) scale(0.001, 0.001)").transition().duration(1500).style("transform", null);
+	    //Append h1 to div 
+
+	    d3.select('#divHello').append('h1').text('Hello').style('text-align', 'center').style('line-height', '100px').style('font-size', '100px').style('transform', 'rotate(-180deg) scale(0.001, 0.001)').transition().duration(1500).style('transform', null);
+
+	    //Create Bullet Chart
+
+	    var data = [{
+	        'title': 'Profit',
+	        'subtitle': '%',
+	        'ranges': [20, 25, 30],
+	        'measures': [21, 23],
+	        'markers': [26]
+	    }, {
+	        'title': 'Order Size',
+	        'subtitle': 'US$, average',
+	        'ranges': [350, 500, 600],
+	        'measures': [100, 320],
+	        'markers': [550]
+	    }];
 
 	    var margin = {
 	        top: 5,
@@ -60,47 +78,21 @@
 
 	    var chart = d3.bullet().width(width).height(height);
 
-	    var data = [{
-	        "title": "Profit",
-	        "subtitle": "%",
-	        "ranges": [20, 25, 30],
-	        "measures": [21, 23],
-	        "markers": [26]
-	    }, {
-	        "title": "Order Size",
-	        "subtitle": "US$, average",
-	        "ranges": [350, 500, 600],
-	        "measures": [100, 320],
-	        "markers": [550]
-	    }, {
-	        "title": "New Customers",
-	        "subtitle": "count",
-	        "ranges": [1400, 2000, 2500],
-	        "measures": [1000, 1650],
-	        "markers": [2100]
-	    }, {
-	        "title": "Satisfaction",
-	        "subtitle": "out of 5",
-	        "ranges": [3.5, 4.25, 5],
-	        "measures": [3.2, 4.7],
-	        "markers": [4.4]
-	    }];
-
 	    var svg = d3.select('#bulletchart').selectAll('svg').data(data).enter().append('svg').attr('class', 'bullet').attr('width', width + margin.left + margin.right).attr('height', height + margin.top + margin.bottom).append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 	    svg.call(chart);
 
-	    var title = svg.append("g").style("text-anchor", "end").attr("transform", "translate(-6," + height / 2 + ")");
+	    var title = svg.append('g').style('text-anchor', 'end').attr('transform', 'translate(-6,' + height / 2 + ')');
 
-	    title.append("text").attr("class", "title").text(function (d) {
+	    title.append('text').attr('class', 'title').text(function (d) {
 	        return d.title;
 	    });
 
-	    title.append("text").attr("class", "subtitle").attr("dy", "1em").text(function (d) {
+	    title.append('text').attr('class', 'subtitle').attr('dy', '1em').text(function (d) {
 	        return d.subtitle;
 	    });
 
-	    d3.selectAll("button").on("click", function () {
+	    d3.selectAll('button').on('click', function () {
 	        svg.datum(randomize).call(chart.duration(1000)); // TODO automatic transition
 	    });
 
@@ -118,6 +110,19 @@
 	            return Math.max(0, d + k * (Math.random() - .5));
 	        };
 	    }
+
+	    //Create a SVg and add color to it by using SVG function
+
+	    d3.svg('#svgEle', {
+	        width: 960,
+	        height: 50,
+	        margin: {
+	            top: 1,
+	            right: 1,
+	            bottom: 1,
+	            left: 1
+	        }
+	    }).style('background-color', 'red');
 	})();
 
 /***/ }
