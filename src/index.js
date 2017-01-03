@@ -93,10 +93,10 @@
         //Create a SVg and add color to it by using SVG function
 
         var bardata = [{
-            'name': 'eshwar',
+            'name': 'Peter',
             'age': 33
         }, {
-            'name': 'Mounika',
+            'name': 'Pan',
             'age': 27
         }]
 

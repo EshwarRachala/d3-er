@@ -23,7 +23,7 @@ export default function () {
     function chart(selection) {
         //here selection is the element we would like to display our chart
         selection.each(function (data) {
-
+            debugger
             var width = this.clientWidth - margin.left - margin.right,
                 height = this.clientHeight - margin.top - margin.bottom
 
@@ -47,6 +47,8 @@ export default function () {
 
             var svg = d3_selection.select(this)
 
+            svg.style('overflow', 'visible')
+
             svg.append('g')
                 .attr('class', 'x axis')
                 .attr('transform', 'translate(0,' + height + ')')
@@ -60,6 +62,11 @@ export default function () {
             svg.append('g')
                 .attr('class', 'y axis')
                 .call(d3_axis.axisLeft(yScale))
+                .selectAll('text')
+                .style('font-size', '12px')
+                .style('text-anchor', 'end')
+                .attr('dx', '-.8em')
+                .attr('dy', '.15em')
 
             svg.selectAll('.bar')
                 .data(data)
