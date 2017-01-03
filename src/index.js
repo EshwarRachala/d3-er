@@ -2,16 +2,16 @@
         'use strict'
 
         //Append h1 to div 
-        d3.select('#divHello')
-            .append('h1')
-            .text('Hello')
-            .style('text-align', 'center')
-            .style('line-height', '100px')
-            .style('font-size', '100px')
-            .style('transform', 'rotate(-180deg) scale(0.001, 0.001)')
-            .transition()
-            .duration(1500)
-            .style('transform', null)
+        // d3.select('#divHello')
+        //     .append('h1')
+        //     .text('Hello')
+        //     .style('text-align', 'center')
+        //     .style('line-height', '100px')
+        //     .style('font-size', '100px')
+        //     .style('transform', 'rotate(-180deg) scale(0.001, 0.001)')
+        //     .transition()
+        //     .duration(1500)
+        //     .style('transform', null)
 
         //Create Bullet Chart
 
@@ -92,7 +92,34 @@
 
         //Create a SVg and add color to it by using SVG function
 
-        var svg = d3.svg('#svgEle').style('background-color', 'red')
-        svg.attr('height', 200)
+        var bardata = [{
+            'name': 'eshwar',
+            'age': 33
+        }, {
+            'name': 'Mounika',
+            'age': 27
+        }]
+
+        // var svg = d3.svg('#svgEle').style('background-color', 'red')
+        // svg.attr('height', 400)
+        // svg.attr('width', 600)
+
+        // debugger
+
+        margin = {
+            top: 20,
+            right: 20,
+            bottom: 20,
+            left: 40
+        }
+
+        var barchart = d3.barchart().x(function (d) {
+            return d.age
+        }).y(function (d) {
+            return d.name
+        }).margin(margin)
+
+        d3.svg('#svgEle').datum(bardata).call(barchart)
+
 
     })()

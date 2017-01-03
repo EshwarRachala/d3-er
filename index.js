@@ -15,6 +15,10 @@ export {
 }
 from './src/d3/svg'
 
+export {
+    default as barchart
+}
+from './src/d3/barchart'
 
 export {
     default
