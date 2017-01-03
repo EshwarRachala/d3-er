@@ -5901,7 +5901,7 @@ var barchart = function () {
     function chart(selection$$1) {
         //here selection is the element we would like to display our chart
         selection$$1.each(function (data) {
-            debugger
+
             var width = this.clientWidth - margin.left - margin.right,
                 height = this.clientHeight - margin.top - margin.bottom;
 
@@ -5925,9 +5925,10 @@ var barchart = function () {
 
             var svg = select(this);
 
-            svg.style('overflow', 'visible');
+            //svg.style('overflow', 'visible')
+            var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            svg.append('g')
+            g.append('g')
                 .attr('class', 'x axis')
                 .attr('transform', 'translate(0,' + height + ')')
                 .call(axisBottom(xScale))
@@ -5937,7 +5938,7 @@ var barchart = function () {
                 .attr('dx', '-.8em')
                 .attr('dy', '.15em');
 
-            svg.append('g')
+            g.append('g')
                 .attr('class', 'y axis')
                 .call(axisLeft(yScale))
                 .selectAll('text')
@@ -5946,7 +5947,7 @@ var barchart = function () {
                 .attr('dx', '-.8em')
                 .attr('dy', '.15em');
 
-            svg.selectAll('.bar')
+            g.selectAll('.bar')
                 .data(data)
                 .enter()
                 .append('rect')

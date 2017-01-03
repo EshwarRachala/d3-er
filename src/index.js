@@ -98,13 +98,10 @@
         }, {
             'name': 'Pan',
             'age': 27
+        }, {
+            'name': 'Json',
+            'age': 37
         }]
-
-        // var svg = d3.svg('#svgEle').style('background-color', 'red')
-        // svg.attr('height', 400)
-        // svg.attr('width', 600)
-
-        // debugger
 
         margin = {
             top: 10,
