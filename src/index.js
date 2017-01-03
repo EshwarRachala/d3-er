@@ -107,10 +107,10 @@
         // debugger
 
         margin = {
-            top: 20,
-            right: 20,
-            bottom: 20,
-            left: 40
+            top: 10,
+            right: 10,
+            bottom: 30,
+            left: 60
         }
 
         var barchart = d3.barchart().x(function (d) {

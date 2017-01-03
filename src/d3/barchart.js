@@ -39,7 +39,7 @@ export default function () {
                 .nice()
 
             yScale
-                .domain(d3_array.extent(data, function (d) {
+                .domain(data.map(function (d) {
                     return d[1]
                 }))
                 .range([height, 0])
@@ -60,11 +60,6 @@ export default function () {
             svg.append('g')
                 .attr('class', 'y axis')
                 .call(d3_axis.axisLeft(yScale))
-                .selectAll('text')
-                .style('font-size', '12px')
-                .style('text-anchor', 'end')
-                .attr('dx', '-.8em')
-                .attr('dy', '.15em')
 
             svg.selectAll('.bar')
                 .data(data)

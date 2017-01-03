@@ -5917,7 +5917,7 @@ var barchart = function () {
                 .nice();
 
             yScale
-                .domain(extent(data, function (d) {
+                .domain(data.map(function (d) {
                     return d[1]
                 }))
                 .range([height, 0])
@@ -5937,12 +5937,7 @@ var barchart = function () {
 
             svg.append('g')
                 .attr('class', 'y axis')
-                .call(axisLeft(yScale))
-                .selectAll('text')
-                .style('font-size', '12px')
-                .style('text-anchor', 'end')
-                .attr('dx', '-.8em')
-                .attr('dy', '.15em');
+                .call(axisLeft(yScale));
 
             svg.selectAll('.bar')
                 .data(data)
