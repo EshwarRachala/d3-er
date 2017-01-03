@@ -47,3 +47,22 @@ svg.style('background-color', 'lime')
     .attr('height', 200)
 ```
        
+### d3.barchart()
+
+```js
+ var barchart = d3.barchart()
+        .x(function (d) {
+            return d.age
+        })
+        .y(function (d) {
+            return d.name
+        })
+        .margin({
+            top: 10,
+            right: 10,
+            bottom: 30,
+            left: 60
+        })
+
+d3.svg('#svgEle').datum(bardata).call(barchart)
+ ```
