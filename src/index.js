@@ -121,11 +121,11 @@
             svg.datum(randomize).call(chart.duration(1000))
 
             var newdata = [{
-                'name': 'Tanvi',
+                'name': 'Alice',
                 'age': 3
             }, {
-                'name': 'Eshwar',
-                'age': 33
+                'name': 'Brian',
+                'age': 45
             }]
 
             barchart.data(newdata)
