@@ -50,19 +50,24 @@ svg.style('background-color', 'lime')
 ### d3.barchart()
 
 ```js
- var barchart = d3.barchart()
-        .x(function (d) {
-            return d.age
-        })
-        .y(function (d) {
-            return d.name
-        })
-        .margin({
-            top: 10,
-            right: 10,
-            bottom: 30,
-            left: 60
-        })
+ var barchart = 
+          d3.barchart()
+            .x(function (d) {
+                return d.age
+            })
+            .y(function (d) {
+                return d.name
+            })
+            .margin(margin)
+            .data(data)
 
-d3.svg('#svgEle').datum(bardata).call(barchart)
+d3.svg('#svgEle').call(barchart)
+
+ ```
+
+### To update chart with new dataset
+
+```js
+barchart.data(newdata)
+
  ```
