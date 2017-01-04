@@ -70,10 +70,6 @@
                 return d.subtitle
             })
 
-        d3.selectAll('button').on('click', function () {
-            svg.datum(randomize).call(chart.duration(1000)) // TODO automatic transition
-        })
-
 
         function randomize(d) {
             if (!d.randomizer) d.randomizer = randomizer(d)
@@ -110,13 +106,30 @@
             left: 60
         }
 
-        var barchart = d3.barchart().x(function (d) {
-            return d.age
-        }).y(function (d) {
-            return d.name
-        }).margin(margin)
+        var barchart = d3.barchart()
+            .x(function (d) {
+                return d.age
+            }).y(function (d) {
+                return d.name
+            }).margin(margin)
+            .data(bardata)
 
-        d3.svg('#svgEle').datum(bardata).call(barchart)
+        d3.svg('#svgEle').call(barchart)
+
+
+        d3.selectAll('button').on('click', function () {
+            svg.datum(randomize).call(chart.duration(1000))
+
+            var newdata = [{
+                'name': 'Tanvi',
+                'age': 3
+            }, {
+                'name': 'Eshwar',
+                'age': 33
+            }]
+
+            barchart.data(newdata)
+        })
 
 
     })()
