@@ -100,10 +100,6 @@
 	        return d.subtitle;
 	    });
 
-	    d3.selectAll('button').on('click', function () {
-	        svg.datum(randomize).call(chart.duration(1000)); // TODO automatic transition
-	    });
-
 	    function randomize(d) {
 	        if (!d.randomizer) d.randomizer = randomizer(d);
 	        d.ranges = d.ranges.map(d.randomizer);
@@ -127,13 +123,10 @@
 	    }, {
 	        'name': 'Pan',
 	        'age': 27
+	    }, {
+	        'name': 'Json',
+	        'age': 37
 	    }];
-
-	    // var svg = d3.svg('#svgEle').style('background-color', 'red')
-	    // svg.attr('height', 400)
-	    // svg.attr('width', 600)
-
-	    // debugger
 
 	    margin = {
 	        top: 10,
@@ -146,9 +139,23 @@
 	        return d.age;
 	    }).y(function (d) {
 	        return d.name;
-	    }).margin(margin);
+	    }).margin(margin).data(bardata);
 
-	    d3.svg('#svgEle').datum(bardata).call(barchart);
+	    d3.svg('#svgEle').call(barchart);
+
+	    d3.selectAll('button').on('click', function () {
+	        svg.datum(randomize).call(chart.duration(1000));
+
+	        var newdata = [{
+	            'name': 'Alice',
+	            'age': 3
+	        }, {
+	            'name': 'Brian',
+	            'age': 45
+	        }];
+
+	        barchart.data(newdata);
+	    });
 	})();
 
 /***/ }
