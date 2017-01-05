@@ -54,17 +54,18 @@ export default function () {
             var g = svg.append('g')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
-            g.append('g')
-                .append('path')
+            g.append('path')
                 .data([data])
                 .attr('class', 'line')
                 .attr('d', line)
 
             g.append('g')
+                .attr('class', 'x axis')
                 .attr('transform', 'translate(0,' + height + ')')
                 .call(d3_axis.axisBottom(xScale))
 
             g.append('g')
+                .attr('class', 'y axis')
                 .call(d3_axis.axisLeft(yScale))
 
             updateData = function () {

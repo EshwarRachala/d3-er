@@ -115,13 +115,28 @@
            {
                'date': 'Mar 2000',
                'price': 1700.58
+           },
+           {
+               'date': 'Apr 2000',
+               'price': 102.42
+           },
+           {
+               'date': 'May 2000',
+               'price': 1700.58
+           },
+           {
+               'date': 'Jun 2000',
+               'price': 102.42
+           },
+           {
+               'date': 'Jul 2000',
+               'price': 1700.58
            }
        ]
 
        var formatDate = d3.timeParse("%b %Y");
 
-       debugger
-       var chart = d3.linechart()
+       var chart1 = d3.linechart()
            .x(function (d) {
                return formatDate(d.date);
            })
@@ -131,7 +146,10 @@
            .margin(margin)
            .data(statetrend);
 
-       d3.svg('#linechart').style('overflow', 'visible').call(chart)
+       d3.svg('#linechart')
+           .style('overflow', 'visible')
+           .style('height', '250')
+           .call(chart1)
 
        d3.selectAll('button').on('click', function () {
            svg.datum(randomize).call(chart.duration(1000))
