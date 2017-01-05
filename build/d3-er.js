@@ -6449,6 +6449,45 @@ var linechart = function () {
             updateData = function () {
 
 
+                data = data.map(function (d, i) {
+                    return [xValue.call(data, d, i), yValue.call(data, d, i)]
+                });
+
+
+                xScale
+                    .domain(extent(data, function (d) {
+                        return d[0]
+                    }));
+
+                yScale
+                    .domain([0, max(data, function (d) {
+                        return d[1]
+                    })]);
+
+                g.select('.line').transition()
+                    .duration(2000)
+                    .remove();
+
+                g.select('.y').transition()
+                    .duration(2000).remove();
+                g.select('.x').transition()
+                    .duration(2000).remove();
+
+                line$$1.x(X).y(Y);
+
+                g.append('path')
+                    .data([data])
+                    .attr('class', 'line')
+                    .attr('d', line$$1);
+
+                g.append('g')
+                    .attr('class', 'x axis')
+                    .attr('transform', 'translate(0,' + height + ')')
+                    .call(axisBottom(xScale));
+
+                g.append('g')
+                    .attr('class', 'y axis')
+                    .call(axisLeft(yScale));
             };
         });
 

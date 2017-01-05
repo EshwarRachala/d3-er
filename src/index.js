@@ -115,22 +115,6 @@
            {
                'date': 'Mar 2000',
                'price': 1700.58
-           },
-           {
-               'date': 'Apr 2000',
-               'price': 102.42
-           },
-           {
-               'date': 'May 2000',
-               'price': 1700.58
-           },
-           {
-               'date': 'Jun 2000',
-               'price': 102.42
-           },
-           {
-               'date': 'Jul 2000',
-               'price': 1700.58
            }
        ]
 
@@ -163,6 +147,26 @@
            }]
 
            barchart.data(newdata)
+
+           statetrend = [{
+                   'date': 'Apr 2010',
+                   'price': 102.42
+               },
+               {
+                   'date': 'May 2010',
+                   'price': 170.58
+               },
+               {
+                   'date': 'Jun 2010',
+                   'price': 102.42
+               },
+               {
+                   'date': 'Jul 2010',
+                   'price': 500.58
+               }
+           ]
+
+           chart1.data(statetrend)
        })
 
 
