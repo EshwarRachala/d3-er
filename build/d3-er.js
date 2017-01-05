@@ -5677,16 +5677,16 @@ function bullet() {
 
         g.each(function (d, i) {
 
-            var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
-                markerz = markers.call(this, d, i).slice().sort(d3.descending),
-                measurez = measures.call(this, d, i).slice().sort(d3.descending),
-                g = d3.select(this),
+            var rangez = ranges.call(this, d, i).slice().sort(descending),
+                markerz = markers.call(this, d, i).slice().sort(descending),
+                measurez = measures.call(this, d, i).slice().sort(descending),
+                g = select(this),
 
-                x1 = d3.scaleLinear()
+                x1 = linear$2()
                 .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])
                 .range(reverse ? [width, 0] : [0, width]),
 
-                x0 = this.__chart__ || d3.scaleLinear()
+                x0 = this.__chart__ || linear$2()
                 .domain([0, Infinity])
                 .range(x1.range());
 
@@ -5694,9 +5694,9 @@ function bullet() {
 
             var w0 = bulletWidth(x0),
                 w1 = bulletWidth(x1),
-                range = g.selectAll('rect.range').data(rangez);
+                range$$1 = g.selectAll('rect.range').data(rangez);
 
-            range.enter().append('rect')
+            range$$1.enter().append('rect')
                 .attr('class', function (d, i) {
                     return 'range s' + i
                 })
@@ -5708,7 +5708,7 @@ function bullet() {
                 .attr('width', w1)
                 .attr('x', reverse ? x1 : 0);
 
-            range.transition()
+            range$$1.transition()
                 .duration(duration)
                 .attr('x', reverse ? x1 : 0)
                 .attr('width', w1)
@@ -5812,7 +5812,7 @@ function bullet() {
                 .remove();
         });
 
-        d3.timerFlush();
+        timerFlush();
     }
 
     bullet.orient = function (x) {
@@ -6428,8 +6428,8 @@ var linechart = function () {
                 .padding(0.1);
 
             line$$1.x(function (d) {
-                    return xScale(d[0])
-                })
+                return xScale(d[0])
+            })
                 .y(function (d) {
                     return yScale(d[1])
                 });

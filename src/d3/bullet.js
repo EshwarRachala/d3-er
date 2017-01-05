@@ -43,7 +43,7 @@ export default function bullet() {
                 measurez = measures.call(this, d, i).slice().sort(d3_array.descending),
                 g = d3_selection.select(this),
 
-                x1 = d3_selection.scaleLinear()
+                x1 = d3_scale.scaleLinear()
                 .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])
                 .range(reverse ? [width, 0] : [0, width]),
 

@@ -22,7 +22,7 @@
   "homepage": "https://github.com/eshwarrachala/d3-er#readme",
   "scripts": {
     "lint": "eslint src/**  --c .eslintrc.json",
-    "pretest": "rm -rf build && mkdir build && rollup -c && uglifyjs build/d3-er.js -c -m -o build/d3-er.min.js",
+    "pretest": "rm -rf build && mkdir build && npm run lint && rollup -c && uglifyjs build/d3-er.js -c -m -o build/d3-er.min.js",
     "test": "faucet `find test -name '*-test.js'`",
     "postpublish": "zip -j build/d3-er.zip -- LICENSE README.md build/d3-er.js build/d3-er.min.js",
     "all": "npm run pretest && npm run test && npm run postpublish",
