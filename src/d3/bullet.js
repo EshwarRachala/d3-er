@@ -1,3 +1,8 @@
+import * as d3_selection from 'd3-selection'
+import * as d3_array from 'd3-array'
+import * as d3_scale from 'd3-scale'
+import * as d3_timer from 'd3-timer'
+
 export default function bullet() {
 
     var orient = 'left',
@@ -33,16 +38,16 @@ export default function bullet() {
 
         g.each(function (d, i) {
 
-            var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
-                markerz = markers.call(this, d, i).slice().sort(d3.descending),
-                measurez = measures.call(this, d, i).slice().sort(d3.descending),
-                g = d3.select(this),
+            var rangez = ranges.call(this, d, i).slice().sort(d3_array.descending),
+                markerz = markers.call(this, d, i).slice().sort(d3_array.descending),
+                measurez = measures.call(this, d, i).slice().sort(d3_array.descending),
+                g = d3_selection.select(this),
 
-                x1 = d3.scaleLinear()
+                x1 = d3_selection.scaleLinear()
                 .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])
                 .range(reverse ? [width, 0] : [0, width]),
 
-                x0 = this.__chart__ || d3.scaleLinear()
+                x0 = this.__chart__ || d3_scale.scaleLinear()
                 .domain([0, Infinity])
                 .range(x1.range())
 
@@ -168,7 +173,7 @@ export default function bullet() {
                 .remove()
         })
 
-        d3.timerFlush()
+        d3_timer.timerFlush()
     }
 
     bullet.orient = function (x) {

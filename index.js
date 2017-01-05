@@ -21,6 +21,11 @@ export {
 from './src/d3/barchart'
 
 export {
+    default as linechart
+}
+from './src/d3/linechart'
+
+export {
     default
     as version
 }
