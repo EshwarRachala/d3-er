@@ -71,3 +71,27 @@ d3.svg('#svgEle').call(barchart)
 barchart.data(newdata)
 
  ```
+
+ ### d3.linechart()
+ ```js
+  var chart = d3.linechart()
+           .x(function (d) {
+               return formatDate(d.date);
+           })
+           .y(function (d) {
+               return +d.price;
+           })
+           .margin(margin)
+           .data(statetrend);
+
+ d3.svg('#linechart')
+           .style('height', '250')
+           .call(chart)
+
+ ```
+ ### To update chart with new dataset
+
+```js
+chart.data(newdata)
+
+ ```
