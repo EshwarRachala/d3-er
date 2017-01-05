@@ -1,4 +1,4 @@
-   import * as d3 from 'd3'
+   /* eslint-disable */
    (function () {
        'use strict'
 
@@ -143,3 +143,5 @@
 
 
    })()
+
+   /* eslint-enable */

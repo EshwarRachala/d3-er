@@ -5391,10 +5391,10 @@ function formatLiteralPercent() {
 }
 
 var locale$2;
-var timeFormat;
-var timeParse;
-var utcFormat;
-var utcParse;
+
+
+
+
 
 defaultLocale$1({
   dateTime: "%x, %X",
@@ -5409,10 +5409,10 @@ defaultLocale$1({
 
 function defaultLocale$1(definition) {
   locale$2 = formatLocale$1(definition);
-  timeFormat = locale$2.format;
-  timeParse = locale$2.parse;
-  utcFormat = locale$2.utcFormat;
-  utcParse = locale$2.utcParse;
+  exports.timeFormat = locale$2.format;
+  exports.timeParse = locale$2.parse;
+  exports.utcFormat = locale$2.utcFormat;
+  exports.utcParse = locale$2.utcParse;
   return locale$2;
 }
 
@@ -5424,7 +5424,7 @@ function formatIsoNative(date) {
 
 var formatIso = Date.prototype.toISOString
     ? formatIsoNative
-    : utcFormat(isoSpecifier);
+    : exports.utcFormat(isoSpecifier);
 
 function parseIsoNative(string) {
   var date = new Date(string);
@@ -5433,7 +5433,7 @@ function parseIsoNative(string) {
 
 var parseIso = +new Date("2000-01-01T00:00:00.000Z")
     ? parseIsoNative
-    : utcParse(isoSpecifier);
+    : exports.utcParse(isoSpecifier);
 
 var durationSecond = 1000;
 var durationMinute = durationSecond * 60;
@@ -5560,11 +5560,11 @@ function calendar(year$$1, month$$1, week, day$$1, hour$$1, minute$$1, second$$1
 }
 
 var time = function() {
-  return calendar(year, month, sunday, day, hour, minute, second, millisecond, timeFormat).domain([new Date(2000, 0, 1), new Date(2000, 0, 2)]);
+  return calendar(year, month, sunday, day, hour, minute, second, millisecond, exports.timeFormat).domain([new Date(2000, 0, 1), new Date(2000, 0, 2)]);
 };
 
 var utcTime = function() {
-  return calendar(utcYear, utcMonth, utcSunday, utcDay, utcHour, utcMinute, second, millisecond, utcFormat).domain([Date.UTC(2000, 0, 1), Date.UTC(2000, 0, 2)]);
+  return calendar(utcYear, utcMonth, utcSunday, utcDay, utcHour, utcMinute, second, millisecond, exports.utcFormat).domain([Date.UTC(2000, 0, 1), Date.UTC(2000, 0, 2)]);
 };
 
 var colors = function(s) {
@@ -6586,6 +6586,10 @@ exports.interpolateMagma = magma;
 exports.interpolateInferno = inferno;
 exports.interpolatePlasma = plasma;
 exports.scaleSequential = sequential;
+exports.timeFormatDefaultLocale = defaultLocale$1;
+exports.timeFormatLocale = formatLocale$1;
+exports.isoFormat = formatIso;
+exports.isoParse = parseIso;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
