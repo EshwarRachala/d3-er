@@ -105,27 +105,33 @@
 
        d3.svg('#barchart').call(barchart)
        var statetrend = [{
-           'date': '1-may-12',
-           'close': 58.13
-       }]
+               'date': 'Jan 2000',
+               'price': 1394.46
+           },
+           {
+               'date': 'Feb 2000',
+               'price': 102.42
+           },
+           {
+               'date': 'Mar 2000',
+               'price': 1700.58
+           }
+       ]
 
-       const parseTime = d3.timeParse('%d-%b-%y')
+       var formatDate = d3.timeParse("%b %Y");
 
-       statetrend.forEach(function (d) {
-           d.date = parseTime(d.date)
-           d.close = +d.close
-       })
-
-
-       var linechart = d3.linechart()
+       debugger
+       var chart = d3.linechart()
            .x(function (d) {
-               return d.date
-           }).y(function (d) {
-               return d.close
-           }).margin(margin)
-           .data(statetrend)
+               return formatDate(d.date);
+           })
+           .y(function (d) {
+               return +d.price;
+           })
+           .margin(margin)
+           .data(statetrend);
 
-       d3.svg('#linechart').call(linechart)
+       d3.svg('#linechart').style('overflow', 'visible').call(chart)
 
        d3.selectAll('button').on('click', function () {
            svg.datum(randomize).call(chart.duration(1000))

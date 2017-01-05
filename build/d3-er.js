@@ -6405,7 +6405,9 @@ var linechart = function () {
     function chart(selection$$1) {
 
         selection$$1.each(function () {
-
+            /*eslint-disable*/
+            debugger
+            /*eslint-enable */
             var width = this.clientWidth - margin.left - margin.right,
                 height = this.clientHeight - margin.top - margin.bottom;
 
@@ -6421,47 +6423,30 @@ var linechart = function () {
                 .nice();
 
             yScale
-                .domain(max(data, function (d) {
+                .domain([0, max(data, function (d) {
                     return d[1]
-                }))
-                .range([height, 0])
-                .padding(0.1);
+                })])
+                .range([height, 0]);
 
-            line$$1.x(function (d) {
-                return xScale(d[0])
-            })
-                .y(function (d) {
-                    return yScale(d[1])
-                });
+            line$$1.x(X).y(Y);
 
             var svg = select(this);
 
             var g = svg.append('g')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            g.append('path')
+            g.append('g')
+                .append('path')
                 .data([data])
                 .attr('class', 'line')
                 .attr('d', line$$1);
 
             g.append('g')
-                .attr('class', 'x axis')
                 .attr('transform', 'translate(0,' + height + ')')
-                .call(axisBottom(xScale))
-                .selectAll('text')
-                .style('font-size', '12px')
-                .style('text-anchor', 'end')
-                .attr('dx', '-.8em')
-                .attr('dy', '.15em');
+                .call(axisBottom(xScale));
 
             g.append('g')
-                .attr('class', 'y axis')
-                .call(axisLeft(yScale))
-                .selectAll('text')
-                .style('font-size', '12px')
-                .style('text-anchor', 'end')
-                .attr('dx', '-.8em')
-                .attr('dy', '.15em');
+                .call(axisLeft(yScale));
 
             updateData = function () {
 
@@ -6471,6 +6456,13 @@ var linechart = function () {
 
     }
 
+    function X(d) {
+        return xScale(d[0])
+    }
+
+    function Y(d) {
+        return yScale(d[1])
+    }
     chart.x = function (_) {
         if (!arguments.length) return xValue
         xValue = _;
@@ -6494,6 +6486,8 @@ var linechart = function () {
         if (typeof updateData === 'function') updateData();
         return chart
     };
+
+    return chart
 };
 
 var version = '1.1.0';
