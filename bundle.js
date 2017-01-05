@@ -44,20 +44,11 @@
 /* 0 */
 /***/ function(module, exports) {
 
+	'use strict';
+
+	/* eslint-disable */
 	(function () {
 	    'use strict';
-
-	    //Append h1 to div 
-	    // d3.select('#divHello')
-	    //     .append('h1')
-	    //     .text('Hello')
-	    //     .style('text-align', 'center')
-	    //     .style('line-height', '100px')
-	    //     .style('font-size', '100px')
-	    //     .style('transform', 'rotate(-180deg) scale(0.001, 0.001)')
-	    //     .transition()
-	    //     .duration(1500)
-	    //     .style('transform', null)
 
 	    //Create Bullet Chart
 
@@ -141,7 +132,27 @@
 	        return d.name;
 	    }).margin(margin).data(bardata);
 
-	    d3.svg('#svgEle').call(barchart);
+	    d3.svg('#barchart').call(barchart);
+	    var statetrend = [{
+	        'date': 'Jan 2000',
+	        'price': 1394.46
+	    }, {
+	        'date': 'Feb 2000',
+	        'price': 102.42
+	    }, {
+	        'date': 'Mar 2000',
+	        'price': 1700.58
+	    }];
+
+	    var formatDate = d3.timeParse("%b %Y");
+
+	    var chart1 = d3.linechart().x(function (d) {
+	        return formatDate(d.date);
+	    }).y(function (d) {
+	        return +d.price;
+	    }).margin(margin).data(statetrend);
+
+	    d3.svg('#linechart').style('overflow', 'visible').style('height', '250').call(chart1);
 
 	    d3.selectAll('button').on('click', function () {
 	        svg.datum(randomize).call(chart.duration(1000));
@@ -155,8 +166,26 @@
 	        }];
 
 	        barchart.data(newdata);
+
+	        statetrend = [{
+	            'date': 'Apr 2010',
+	            'price': 102.42
+	        }, {
+	            'date': 'May 2010',
+	            'price': 170.58
+	        }, {
+	            'date': 'Jun 2010',
+	            'price': 102.42
+	        }, {
+	            'date': 'Jul 2010',
+	            'price': 500.58
+	        }];
+
+	        chart1.data(statetrend);
 	    });
 	})();
+
+	/* eslint-enable */
 
 /***/ }
 /******/ ]);

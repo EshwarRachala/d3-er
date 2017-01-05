@@ -29,7 +29,6 @@
     "check": "npm install -g && npm link",
     "dev": "webpack-dev-server --inline --hot  --config webpack.config.js",
     "build": "webpack --progress --hide-modules --config webpack.config.js",
-    "predeploy": "npm run build",
     "deploy": "surge --project . --domain d3examples.surge.sh"
   },
   "devDependencies": {
