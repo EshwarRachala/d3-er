@@ -9,25 +9,25 @@ export * from 'd3-time-format'
 export {
     default as bullet
 }
-from './src/d3/bullet'
+from './src/bullet'
 
 export {
     default as svg
 }
-from './src/d3/svg'
+from './src/svg'
 
 export {
     default as barchart
 }
-from './src/d3/barchart'
+from './src/barchart'
 
 export {
     default as linechart
 }
-from './src/d3/linechart'
+from './src/linechart'
 
 export {
     default
     as version
 }
-from './src/d3/version'
+from './src/version'
