@@ -112,7 +112,8 @@ barchart.data(newdata)
            .style('height', '250')
            .call(chart)
 
-```
+ ```
+
 - To update chart with new dataset
 
 ```js
