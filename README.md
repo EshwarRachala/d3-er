@@ -34,9 +34,6 @@ d3.select('body').style('background-color', 'red');
 
 - https://github.com/d3/d3/blob/master/API.md
 
-### Bullet Chart 
-- to create bullet chart use d3.bullet()
-
 ### Svg element 
 
 - to create SVG element with default width(100%) and height(100) use d3.svg()
@@ -52,6 +49,10 @@ svg.style('background-color', 'lime')
     .attr('height', 200)
 ```
        
+### Bullet Chart 
+
+- to create bullet chart use d3.bullet()
+
 ### Bar Chart
 
 - To create barchart follow below steps
