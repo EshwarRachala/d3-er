@@ -108,7 +108,7 @@ barchart.data(newdata)
            .margin(margin)
            .data(statetrend);
 
- d3.svg('#linechart')
+  d3.svg('#linechart')
            .style('height', '250')
            .call(chart)
 
@@ -117,6 +117,6 @@ barchart.data(newdata)
 - To update chart with new dataset
 
 ```js
-chart.data(newdata)
+   chart.data(newdata)
 
 ```
