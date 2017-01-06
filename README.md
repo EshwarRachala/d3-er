@@ -91,13 +91,13 @@ d3.svg('#svgEle').call(barchart)
 ```js
 barchart.data(newdata)
 
- ```
+```
 
 ### Line Chart
 
  - To create Line Chart follow below steps
 
- ```js
+```js
   var chart = d3.linechart()
            .x(function (d) {
                return formatDate(d.date);
@@ -112,7 +112,7 @@ barchart.data(newdata)
            .style('height', '250')
            .call(chart)
 
- ```
+```
 
 - To update chart with new dataset
 
