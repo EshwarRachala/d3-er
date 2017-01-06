@@ -34,6 +34,19 @@ d3.select('body').style('background-color', 'red');
 
 - https://github.com/d3/d3/blob/master/API.md
 
+## D3 modules exported
+
+- d3-array
+- d3-axis
+- d3-line
+- d3-scale
+- d3-selection
+- d3-shape
+- d3-time-format
+- d3-timer
+- d3-transition
+
+
 ### Svg element 
 
 - to create SVG element with default width(100%) and height(100) use d3.svg()
