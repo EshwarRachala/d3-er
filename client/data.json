@@ -35,6 +35,15 @@
             "date": "Mar 2000",
             "price": 1700.58
         }
+    ],
+    "updateline": [{
+            "date": "Jun 2010",
+            "price": 102.42
+        },
+        {
+            "date": "Jul 2010",
+            "price": 500.58
+        }
     ]
 
 }

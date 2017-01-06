@@ -29,17 +29,7 @@
 
            barchart.data(json.updatebar)
 
-           var statetrend = [{
-                   'date': 'Jun 2010',
-                   'price': 102.42
-               },
-               {
-                   'date': 'Jul 2010',
-                   'price': 500.58
-               }
-           ]
-
-           linechart.data(statetrend)
+           linechart.data(json.updateline)
        })
 
        function bulletchart() {
