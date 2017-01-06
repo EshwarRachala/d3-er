@@ -4,9 +4,9 @@ Custom d3 module created using some d3 modules(d3-selection,d3-transition etc.) 
 
 ## Installing
 
-If you use NPM, `npm install d3-er`.
+ If you use NPM, `npm install d3-er`.
 
-and require it in file :
+ and require it in file :
 
 ```js
 var d3 = require('d3-er/build/d3-er');
