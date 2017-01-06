@@ -1,0 +1,40 @@
+{
+    "bullet": [{
+        "title": "Profit",
+        "subtitle": "%",
+        "ranges": [20, 25, 30],
+        "measures": [21, 23],
+        "markers": [26]
+    }],
+    "bar": [{
+        "name": "Maria",
+        "age": 33
+    }, {
+        "name": "Pan",
+        "age": 27
+    }, {
+        "name": "Json",
+        "age": 37
+    }],
+    "updatebar": [{
+        "name": "Alice",
+        "age": 3
+    }, {
+        "name": "Brian",
+        "age": 45
+    }],
+    "line": [{
+            "date": "Jan 2000",
+            "price": 1394.46
+        },
+        {
+            "date": "Feb 2000",
+            "price": 102.42
+        },
+        {
+            "date": "Mar 2000",
+            "price": 1700.58
+        }
+    ]
+
+}

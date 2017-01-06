@@ -52,6 +52,7 @@
     "eslint": "3.12.2",
     "faucet": "0.0",
     "jsdom": "9.9.1",
+    "json-loader": "^0.5.4",
     "rollup": "0.40.2",
     "rollup-plugin-commonjs": "7.0.0",
     "rollup-plugin-node-resolve": "2",
