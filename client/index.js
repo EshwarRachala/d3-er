@@ -1,5 +1,5 @@
    /* eslint-disable */
-   import json from './data.json'
+   import json from '../data/data.json'
 
    (function () {
        'use strict'
