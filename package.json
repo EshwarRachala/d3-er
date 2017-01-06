@@ -47,9 +47,9 @@
     "d3-transition": "1.0.3",
     "eslint": "3.12.2",
     "faucet": "0.0",
-    "jsdom": "^8.1.0",
-    "rollup": "0.39.2",
-    "rollup-plugin-commonjs": "^2.2.1",
+    "jsdom": "9.9.1",
+    "rollup": "0.40.2",
+    "rollup-plugin-commonjs": "7.0.0",
     "rollup-plugin-node-resolve": "2",
     "surge": "^0.18.0",
     "tape": "4",
@@ -58,7 +58,13 @@
     "webpack": "1.14.0",
     "webpack-dev-server": "1.16.2"
   },
-  "dependencies": {},
+  "dependencies": {
+    "array-flatten": "2.1.0",
+    "async": "^2.1.4",
+    "buffer": "^5.0.2",
+    "builtin-status-codes": "^3.0.0",
+    "camel-case": "^3.0.0"
+  },
   "eslintConfig": {
     "parser": "babel-eslint"
   }
