@@ -1,7 +1,7 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-    typeof define === 'function' && define.amd ? define('d3', ['exports'], factory) :
-    (factory((global.d3 = global.d3 || {})));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define('d3', ['exports'], factory) :
+	(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
 var ascending = function(a, b) {
@@ -6474,13 +6474,15 @@ var linechart = function () {
     return chart
 };
 
-var version = '1.2.0';
+var version = "1.2.1";
+
+var Version = version;
 
 exports.bullet = bullet;
 exports.svg = SVG;
 exports.barchart = barchart;
 exports.linechart = linechart;
-exports.version = version;
+exports.version = Version;
 exports.bisect = bisectRight;
 exports.bisectRight = bisectRight;
 exports.bisectLeft = bisectLeft;

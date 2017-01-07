@@ -1,3 +1,7 @@
-const version = '1.2.0'
+import {
+    version,
+} from '../package.json'
 
-export default version
+const Version = version
+
+export default Version

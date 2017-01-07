@@ -1,6 +1,6 @@
 {
   "name": "d3-er",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Custom d3 module created using some d3 modules and custom functions",
   "main": "index.js",
   "repository": {
