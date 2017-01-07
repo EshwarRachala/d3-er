@@ -4,12 +4,8 @@ import * as d3Axis from 'd3-axis'
 import * as d3Scale from 'd3-scale'
 
 export default function () {
-    let xValue = function (d) {
-        return d[0]
-    }
-    let yValue = function (d) {
-        return d[1]
-    }
+    let xValue = d => d[0]
+    let yValue = d => d[1]
     const xScale = d3Scale.scaleLinear()
     const yScale = d3Scale.scaleBand()
     let margin = {
@@ -71,7 +67,7 @@ export default function () {
                 .attr('width', d => xScale(d[0]))
 
 
-            updateData = function () {
+            updateData = function update() {
                 data = data.map((d, i) => [xValue.call(data, d, i), yValue.call(data, d, i)])
 
                 xScale

@@ -5875,12 +5875,8 @@ function SVG(elem) {
 }
 
 var barchart = function () {
-    var xValue = function (d) {
-        return d[0]
-    };
-    var yValue = function (d) {
-        return d[1]
-    };
+    var xValue = function (d) { return d[0]; };
+    var yValue = function (d) { return d[1]; };
     var xScale = linear$2();
     var yScale = band();
     var margin = {
@@ -5942,7 +5938,7 @@ var barchart = function () {
                 .attr('width', function (d) { return xScale(d[0]); });
 
 
-            updateData = function () {
+            updateData = function update() {
                 data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i)]; });
 
                 xScale
@@ -6478,7 +6474,7 @@ var linechart = function () {
     return chart
 };
 
-var version = '1.1.0';
+var version = '1.2.0';
 
 exports.bullet = bullet;
 exports.svg = SVG;
