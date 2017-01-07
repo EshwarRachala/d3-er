@@ -1,25 +1,24 @@
-import * as d3_selection from 'd3-selection'
-import * as d3_array from 'd3-array'
-import * as d3_scale from 'd3-scale'
-import * as d3_timer from 'd3-timer'
+import * as d3Sel from 'd3-selection'
+import * as d3Array from 'd3-array'
+import * as d3Scale from 'd3-scale'
+import * as d3Timer from 'd3-timer'
 
-export default function bullet() {
-
-    var orient = 'left',
-        reverse = false,
-        duration = 0,
-        ranges = function (d) {
-            return d.ranges
-        },
-        markers = function (d) {
-            return d.markers
-        },
-        measures = function (d) {
-            return d.measures
-        },
-        width = 380,
-        height = 30,
-        tickFormat = null
+export default function () {
+    let orient = 'left'
+    let reverse = false
+    let duration = 0
+    let ranges = function (d) {
+        return d.ranges
+    }
+    let markers = function (d) {
+        return d.markers
+    }
+    let measures = function (d) {
+        return d.measures
+    }
+    let width = 380
+    let height = 30
+    let tickFormat = null
 
     function bulletTranslate(x) {
         return function (d) {
@@ -28,39 +27,35 @@ export default function bullet() {
     }
 
     function bulletWidth(x) {
-        var x0 = x(0)
+        const x0 = x(0)
         return function (d) {
             return Math.abs(x(d) - x0)
         }
     }
 
     function bullet(g) {
-
         g.each(function (d, i) {
+            const rangez = ranges.call(this, d, i).slice().sort(d3Array.descending)
+            const markerz = markers.call(this, d, i).slice().sort(d3Array.descending)
+            const measurez = measures.call(this, d, i).slice().sort(d3Array.descending)
+            const group = d3Sel.select(this)
 
-            var rangez = ranges.call(this, d, i).slice().sort(d3_array.descending),
-                markerz = markers.call(this, d, i).slice().sort(d3_array.descending),
-                measurez = measures.call(this, d, i).slice().sort(d3_array.descending),
-                g = d3_selection.select(this),
-
-                x1 = d3_scale.scaleLinear()
+            const x1 = d3Scale.scaleLinear()
                 .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])
-                .range(reverse ? [width, 0] : [0, width]),
+                .range(reverse ? [width, 0] : [0, width])
 
-                x0 = this.__chart__ || d3_scale.scaleLinear()
+            const x0 = this.__chart__ || d3Scale.scaleLinear()
                 .domain([0, Infinity])
                 .range(x1.range())
 
             this.__chart__ = x1
 
-            var w0 = bulletWidth(x0),
-                w1 = bulletWidth(x1),
-                range = g.selectAll('rect.range').data(rangez)
+            const w0 = bulletWidth(x0)
+            const w1 = bulletWidth(x1)
+            const range = group.selectAll('rect.range').data(rangez)
 
             range.enter().append('rect')
-                .attr('class', function (d, i) {
-                    return 'range s' + i
-                })
+                .attr('class', (d, i) => 'range s' + i)
                 .attr('width', w0)
                 .attr('height', height)
                 .attr('x', reverse ? x0 : 0)
@@ -76,13 +71,11 @@ export default function bullet() {
                 .attr('height', height)
 
             // Update the measure rects.
-            var measure = g.selectAll('rect.measure')
+            const measure = group.selectAll('rect.measure')
                 .data(measurez)
 
             measure.enter().append('rect')
-                .attr('class', function (d, i) {
-                    return 'measure s' + i
-                })
+                .attr('class', (d, i) => 'measure s' + i)
                 .attr('width', w0)
                 .attr('height', height / 3)
                 .attr('x', reverse ? x0 : 0)
@@ -100,7 +93,7 @@ export default function bullet() {
                 .attr('y', height / 3)
 
             // Update the marker lines.
-            var marker = g.selectAll('line.marker')
+            const marker = group.selectAll('line.marker')
                 .data(markerz)
 
             marker.enter().append('line')
@@ -108,7 +101,7 @@ export default function bullet() {
                 .attr('x1', x0)
                 .attr('x2', x0)
                 .attr('y1', height / 6)
-                .attr('y2', height * 5 / 6)
+                .attr('y2', (height * 5) / 6)
                 .transition()
                 .duration(duration)
                 .attr('x1', x1)
@@ -119,31 +112,29 @@ export default function bullet() {
                 .attr('x1', x1)
                 .attr('x2', x1)
                 .attr('y1', height / 6)
-                .attr('y2', height * 5 / 6)
+                .attr('y2', (height * 5) / 6)
 
             // Compute the tick format.
-            var format = tickFormat || x1.tickFormat(8)
+            const format = tickFormat || x1.tickFormat(8)
 
             // Update the tick groups.
-            var tick = g.selectAll('g.tick')
-                .data(x1.ticks(8), function (d) {
-                    return this.textContent || format(d)
-                })
+            const tick = group.selectAll('g.tick')
+                .data(x1.ticks(8), d => this.textContent || format(d))
 
             // Initialize the ticks with the old scale, x0.
-            var tickEnter = tick.enter().append('g')
+            const tickEnter = tick.enter().append('g')
                 .attr('class', 'tick')
                 .attr('transform', bulletTranslate(x0))
                 .style('opacity', 1e-6)
 
             tickEnter.append('line')
                 .attr('y1', height)
-                .attr('y2', height * 7 / 6)
+                .attr('y2', (height * 7) / 6)
 
             tickEnter.append('text')
                 .attr('text-anchor', 'middle')
                 .attr('dy', '1em')
-                .attr('y', height * 7 / 6)
+                .attr('y', (height * 7) / 6)
                 .text(format)
 
             // Transition the entering ticks to the new scale, x1.
@@ -153,17 +144,17 @@ export default function bullet() {
                 .style('opacity', 1)
 
             // Transition the updating ticks to the new scale, x1.
-            var tickUpdate = tick.transition()
+            const tickUpdate = tick.transition()
                 .duration(duration)
                 .attr('transform', bulletTranslate(x1))
                 .style('opacity', 1)
 
             tickUpdate.select('line')
                 .attr('y1', height)
-                .attr('y2', height * 7 / 6)
+                .attr('y2', (height * 7) / 6)
 
             tickUpdate.select('text')
-                .attr('y', height * 7 / 6)
+                .attr('y', (height * 7) / 6)
 
             // Transition the exiting ticks to the new scale, x1.
             tick.exit().transition()
@@ -173,7 +164,7 @@ export default function bullet() {
                 .remove()
         })
 
-        d3_timer.timerFlush()
+        d3Timer.timerFlush()
     }
 
     bullet.orient = function (x) {

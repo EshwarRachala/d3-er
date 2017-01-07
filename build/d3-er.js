@@ -5642,23 +5642,22 @@ function sequential(interpolator) {
   return linearish(scale);
 }
 
-function bullet() {
-
-    var orient = 'left',
-        reverse = false,
-        duration = 0,
-        ranges = function (d) {
-            return d.ranges
-        },
-        markers = function (d) {
-            return d.markers
-        },
-        measures = function (d) {
-            return d.measures
-        },
-        width = 380,
-        height = 30,
-        tickFormat = null;
+var bullet = function () {
+    var orient = 'left';
+    var reverse = false;
+    var duration = 0;
+    var ranges = function (d) {
+        return d.ranges
+    };
+    var markers = function (d) {
+        return d.markers
+    };
+    var measures = function (d) {
+        return d.measures
+    };
+    var width = 380;
+    var height = 30;
+    var tickFormat = null;
 
     function bulletTranslate(x) {
         return function (d) {
@@ -5674,32 +5673,30 @@ function bullet() {
     }
 
     function bullet(g) {
-
         g.each(function (d, i) {
+            var this$1 = this;
 
-            var rangez = ranges.call(this, d, i).slice().sort(descending),
-                markerz = markers.call(this, d, i).slice().sort(descending),
-                measurez = measures.call(this, d, i).slice().sort(descending),
-                g = select(this),
+            var rangez = ranges.call(this, d, i).slice().sort(descending);
+            var markerz = markers.call(this, d, i).slice().sort(descending);
+            var measurez = measures.call(this, d, i).slice().sort(descending);
+            var group = select(this);
 
-                x1 = linear$2()
+            var x1 = linear$2()
                 .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])
-                .range(reverse ? [width, 0] : [0, width]),
+                .range(reverse ? [width, 0] : [0, width]);
 
-                x0 = this.__chart__ || linear$2()
+            var x0 = this.__chart__ || linear$2()
                 .domain([0, Infinity])
                 .range(x1.range());
 
             this.__chart__ = x1;
 
-            var w0 = bulletWidth(x0),
-                w1 = bulletWidth(x1),
-                range$$1 = g.selectAll('rect.range').data(rangez);
+            var w0 = bulletWidth(x0);
+            var w1 = bulletWidth(x1);
+            var range$$1 = group.selectAll('rect.range').data(rangez);
 
             range$$1.enter().append('rect')
-                .attr('class', function (d, i) {
-                    return 'range s' + i
-                })
+                .attr('class', function (d, i) { return 'range s' + i; })
                 .attr('width', w0)
                 .attr('height', height)
                 .attr('x', reverse ? x0 : 0)
@@ -5715,13 +5712,11 @@ function bullet() {
                 .attr('height', height);
 
             // Update the measure rects.
-            var measure = g.selectAll('rect.measure')
+            var measure = group.selectAll('rect.measure')
                 .data(measurez);
 
             measure.enter().append('rect')
-                .attr('class', function (d, i) {
-                    return 'measure s' + i
-                })
+                .attr('class', function (d, i) { return 'measure s' + i; })
                 .attr('width', w0)
                 .attr('height', height / 3)
                 .attr('x', reverse ? x0 : 0)
@@ -5739,7 +5734,7 @@ function bullet() {
                 .attr('y', height / 3);
 
             // Update the marker lines.
-            var marker = g.selectAll('line.marker')
+            var marker = group.selectAll('line.marker')
                 .data(markerz);
 
             marker.enter().append('line')
@@ -5747,7 +5742,7 @@ function bullet() {
                 .attr('x1', x0)
                 .attr('x2', x0)
                 .attr('y1', height / 6)
-                .attr('y2', height * 5 / 6)
+                .attr('y2', (height * 5) / 6)
                 .transition()
                 .duration(duration)
                 .attr('x1', x1)
@@ -5758,16 +5753,14 @@ function bullet() {
                 .attr('x1', x1)
                 .attr('x2', x1)
                 .attr('y1', height / 6)
-                .attr('y2', height * 5 / 6);
+                .attr('y2', (height * 5) / 6);
 
             // Compute the tick format.
             var format = tickFormat || x1.tickFormat(8);
 
             // Update the tick groups.
-            var tick = g.selectAll('g.tick')
-                .data(x1.ticks(8), function (d) {
-                    return this.textContent || format(d)
-                });
+            var tick = group.selectAll('g.tick')
+                .data(x1.ticks(8), function (d) { return this$1.textContent || format(d); });
 
             // Initialize the ticks with the old scale, x0.
             var tickEnter = tick.enter().append('g')
@@ -5777,12 +5770,12 @@ function bullet() {
 
             tickEnter.append('line')
                 .attr('y1', height)
-                .attr('y2', height * 7 / 6);
+                .attr('y2', (height * 7) / 6);
 
             tickEnter.append('text')
                 .attr('text-anchor', 'middle')
                 .attr('dy', '1em')
-                .attr('y', height * 7 / 6)
+                .attr('y', (height * 7) / 6)
                 .text(format);
 
             // Transition the entering ticks to the new scale, x1.
@@ -5799,10 +5792,10 @@ function bullet() {
 
             tickUpdate.select('line')
                 .attr('y1', height)
-                .attr('y2', height * 7 / 6);
+                .attr('y2', (height * 7) / 6);
 
             tickUpdate.select('text')
-                .attr('y', height * 7 / 6);
+                .attr('y', (height * 7) / 6);
 
             // Transition the exiting ticks to the new scale, x1.
             tick.exit().transition()
@@ -5866,7 +5859,7 @@ function bullet() {
     };
 
     return bullet
-}
+};
 
 function SVG(elem) {
 
