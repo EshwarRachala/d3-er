@@ -1,6 +1,7 @@
 # d3-er
 
-Custom d3 module created using some d3 modules(d3-selection,d3-transition etc.) and some extra functions 
+[![npm version](https://badge.fury.io/js/d3-er.svg)]
+(http://badge.fury.io/js/d3-er)
 
 ## Installing
 
