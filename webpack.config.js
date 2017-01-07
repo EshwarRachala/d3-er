@@ -1,16 +1,22 @@
-var webpack = require('webpack')
-var path = require('path')
-
 module.exports = {
     entry: './client/index.js',
     output: {
+        /*eslint-disable */
         path: __dirname,
+        /*eslint-enable */
         filename: 'bundle.js'
     },
     module: {
         loaders: [{
-            test: path.join(__dirname, 'client'),
-            loader: 'babel-loader'
+            test: /\.json$/,
+            loader: 'json'
+        }, {
+            test: /\.js$/,
+            exclude: /node_modules/,
+            loader: 'babel',
+            query: {
+                presets: ['es2015']
+            }
         }]
     }
 }

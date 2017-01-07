@@ -1,7 +1,7 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-    typeof define === 'function' && define.amd ? define(['exports'], factory) :
-    (factory((global.d3 = global.d3 || {})));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define('d3', ['exports'], factory) :
+	(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
 var ascending = function(a, b) {
@@ -5642,27 +5642,21 @@ function sequential(interpolator) {
   return linearish(scale);
 }
 
-function bullet() {
+var bullet = function () {
+    var orient = 'left';
+    var reverse = false;
+    var duration = 0;
+    var ranges = function (d) { return d.ranges; };
+    var markers = function (d) { return d.markers; };
+    var measures = function (d) { return d.measures; };
 
-    var orient = 'left',
-        reverse = false,
-        duration = 0,
-        ranges = function (d) {
-            return d.ranges
-        },
-        markers = function (d) {
-            return d.markers
-        },
-        measures = function (d) {
-            return d.measures
-        },
-        width = 380,
-        height = 30,
-        tickFormat = null;
+    var width = 380;
+    var height = 30;
+    var tickFormat = null;
 
     function bulletTranslate(x) {
         return function (d) {
-            return 'translate(' + x(d) + ',0)'
+            return ("translate(" + (x(d)) + ",0)")
         }
     }
 
@@ -5674,32 +5668,30 @@ function bullet() {
     }
 
     function bullet(g) {
-
         g.each(function (d, i) {
+            var this$1 = this;
 
-            var rangez = ranges.call(this, d, i).slice().sort(descending),
-                markerz = markers.call(this, d, i).slice().sort(descending),
-                measurez = measures.call(this, d, i).slice().sort(descending),
-                g = select(this),
+            var rangez = ranges.call(this, d, i).slice().sort(descending);
+            var markerz = markers.call(this, d, i).slice().sort(descending);
+            var measurez = measures.call(this, d, i).slice().sort(descending);
+            var group = select(this);
 
-                x1 = linear$2()
+            var x1 = linear$2()
                 .domain([0, Math.max(rangez[0], markerz[0], measurez[0])])
-                .range(reverse ? [width, 0] : [0, width]),
+                .range(reverse ? [width, 0] : [0, width]);
 
-                x0 = this.__chart__ || linear$2()
+            var x0 = this.__chart__ || linear$2()
                 .domain([0, Infinity])
                 .range(x1.range());
 
             this.__chart__ = x1;
 
-            var w0 = bulletWidth(x0),
-                w1 = bulletWidth(x1),
-                range$$1 = g.selectAll('rect.range').data(rangez);
+            var w0 = bulletWidth(x0);
+            var w1 = bulletWidth(x1);
+            var range$$1 = group.selectAll('rect.range').data(rangez);
 
             range$$1.enter().append('rect')
-                .attr('class', function (d, i) {
-                    return 'range s' + i
-                })
+                .attr('class', function (d, i) { return ("range s" + i); })
                 .attr('width', w0)
                 .attr('height', height)
                 .attr('x', reverse ? x0 : 0)
@@ -5715,13 +5707,11 @@ function bullet() {
                 .attr('height', height);
 
             // Update the measure rects.
-            var measure = g.selectAll('rect.measure')
+            var measure = group.selectAll('rect.measure')
                 .data(measurez);
 
             measure.enter().append('rect')
-                .attr('class', function (d, i) {
-                    return 'measure s' + i
-                })
+                .attr('class', function (d, i) { return ("measure s" + i); })
                 .attr('width', w0)
                 .attr('height', height / 3)
                 .attr('x', reverse ? x0 : 0)
@@ -5739,7 +5729,7 @@ function bullet() {
                 .attr('y', height / 3);
 
             // Update the marker lines.
-            var marker = g.selectAll('line.marker')
+            var marker = group.selectAll('line.marker')
                 .data(markerz);
 
             marker.enter().append('line')
@@ -5747,7 +5737,7 @@ function bullet() {
                 .attr('x1', x0)
                 .attr('x2', x0)
                 .attr('y1', height / 6)
-                .attr('y2', height * 5 / 6)
+                .attr('y2', (height * 5) / 6)
                 .transition()
                 .duration(duration)
                 .attr('x1', x1)
@@ -5758,16 +5748,14 @@ function bullet() {
                 .attr('x1', x1)
                 .attr('x2', x1)
                 .attr('y1', height / 6)
-                .attr('y2', height * 5 / 6);
+                .attr('y2', (height * 5) / 6);
 
             // Compute the tick format.
             var format = tickFormat || x1.tickFormat(8);
 
             // Update the tick groups.
-            var tick = g.selectAll('g.tick')
-                .data(x1.ticks(8), function (d) {
-                    return this.textContent || format(d)
-                });
+            var tick = group.selectAll('g.tick')
+                .data(x1.ticks(8), function (d) { return this$1.textContent || format(d); });
 
             // Initialize the ticks with the old scale, x0.
             var tickEnter = tick.enter().append('g')
@@ -5777,12 +5765,12 @@ function bullet() {
 
             tickEnter.append('line')
                 .attr('y1', height)
-                .attr('y2', height * 7 / 6);
+                .attr('y2', (height * 7) / 6);
 
             tickEnter.append('text')
                 .attr('text-anchor', 'middle')
                 .attr('dy', '1em')
-                .attr('y', height * 7 / 6)
+                .attr('y', (height * 7) / 6)
                 .text(format);
 
             // Transition the entering ticks to the new scale, x1.
@@ -5799,10 +5787,10 @@ function bullet() {
 
             tickUpdate.select('line')
                 .attr('y1', height)
-                .attr('y2', height * 7 / 6);
+                .attr('y2', (height * 7) / 6);
 
             tickUpdate.select('text')
-                .attr('y', height * 7 / 6);
+                .attr('y', (height * 7) / 6);
 
             // Transition the exiting ticks to the new scale, x1.
             tick.exit().transition()
@@ -5816,61 +5804,61 @@ function bullet() {
     }
 
     bullet.orient = function (x) {
-        if (!arguments.length) return orient
+        if (!arguments.length) { return orient }
         orient = x;
         reverse = orient === 'right' || orient === 'bottom';
         return bullet
     };
 
     bullet.ranges = function (x) {
-        if (!arguments.length) return ranges
+        if (!arguments.length) { return ranges }
         ranges = x;
         return bullet
     };
 
     bullet.markers = function (x) {
-        if (!arguments.length) return markers
+        if (!arguments.length) { return markers }
         markers = x;
         return bullet
     };
 
     // measures (actual, forecast)
     bullet.measures = function (x) {
-        if (!arguments.length) return measures
+        if (!arguments.length) { return measures }
         measures = x;
         return bullet
     };
 
     bullet.width = function (x) {
-        if (!arguments.length) return width
+        if (!arguments.length) { return width }
         width = x;
         return bullet
     };
 
     bullet.height = function (x) {
-        if (!arguments.length) return height
+        if (!arguments.length) { return height }
         height = x;
         return bullet
     };
 
     bullet.tickFormat = function (x) {
-        if (!arguments.length) return tickFormat
+        if (!arguments.length) { return tickFormat }
         tickFormat = x;
         return bullet
     };
 
     bullet.duration = function (x) {
-        if (!arguments.length) return duration
+        if (!arguments.length) { return duration }
         duration = x;
         return bullet
     };
 
     return bullet
-}
+};
 
 function SVG(elem) {
 
-    if (!arguments.length) return null
+    if (!arguments.length) { return null }
 
     var svg = select(elem).append('svg');
 
@@ -5882,57 +5870,44 @@ function SVG(elem) {
 }
 
 var barchart = function () {
-
-    var xValue = function (d) {
-            return d[0]
-        },
-        yValue = function (d) {
-            return d[1]
-        },
-        xScale = linear$2(),
-        yScale = band(),
-        margin = {
-            top: 20,
-            right: 20,
-            bottom: 20,
-            left: 20
-        },
-        data = [],
-        updateData;
-
+    var xValue = function (d) { return d[0]; };
+    var yValue = function (d) { return d[1]; };
+    var xScale = linear$2();
+    var yScale = band();
+    var margin = {
+        top: 20,
+        right: 20,
+        bottom: 20,
+        left: 20,
+    };
+    var data = [];
+    var updateData;
 
     function chart(selection$$1) {
-
         selection$$1.each(function () {
+            var width = this.clientWidth - margin.left - margin.right;
+            var height = this.clientHeight - margin.top - margin.bottom;
 
-            var width = this.clientWidth - margin.left - margin.right,
-                height = this.clientHeight - margin.top - margin.bottom;
-
-            data = data.map(function (d, i) {
-                return [xValue.call(data, d, i), yValue.call(data, d, i)]
-            });
+            data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i)]; });
 
             xScale
-                .domain([0, max(data, function (d) {
-                    return d[0]
-                })])
+                .domain([0, max(data, function (d) { return d[0]; })])
                 .range([0, width])
                 .nice();
 
             yScale
-                .domain(data.map(function (d) {
-                    return d[1]
-                }))
+                .domain(data.map(function (d) { return d[1]; }))
                 .range([height, 0])
                 .padding(0.1);
 
             var svg = select(this);
 
-            var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            var g = svg.append('g')
+                         .attr('transform', ("translate(" + (margin.left) + "," + (margin.right) + ")"));
 
             g.append('g')
                 .attr('class', 'x axis')
-                .attr('transform', 'translate(0,' + height + ')')
+                .attr('transform', ("translate(0," + height + ")"))
                 .call(axisBottom(xScale))
                 .selectAll('text')
                 .style('font-size', '12px')
@@ -5954,33 +5929,21 @@ var barchart = function () {
                 .enter()
                 .append('rect')
                 .attr('class', 'bar')
-                .attr('y', function (d) {
-                    return yScale(d[1])
-                })
+                .attr('y', function (d) { return yScale(d[1]); })
                 .attr('height', yScale.bandwidth())
-                .attr('width', function (d) {
-                    return xScale(d[0])
-                });
+                .attr('width', function (d) { return xScale(d[0]); });
 
 
-            updateData = function () {
-
-                data = data.map(function (d, i) {
-                    return [xValue.call(data, d, i), yValue.call(data, d, i)]
-                });
-
+            updateData = function update() {
+                data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i)]; });
 
                 xScale
-                    .domain([0, max(data, function (d) {
-                        return d[0]
-                    })])
+                    .domain([0, max(data, function (d) { return d[0]; })])
                     .range([0, width])
                     .nice();
 
                 yScale
-                    .domain(data.map(function (d) {
-                        return d[1]
-                    }))
+                    .domain(data.map(function (d) { return d[1]; }))
                     .range([height, 0])
                     .padding(0.1);
 
@@ -5992,13 +5955,9 @@ var barchart = function () {
                     .transition()
                     .duration(2000)
                     .attr('class', 'bar')
-                    .attr('y', function (d) {
-                        return yScale(d[1])
-                    })
+                    .attr('y', function (d) { return yScale(d[1]); })
                     .attr('height', yScale.bandwidth())
-                    .attr('width', function (d) {
-                        return xScale(d[0])
-                    });
+                    .attr('width', function (d) { return xScale(d[0]); });
 
                 bar.exit().remove();
 
@@ -6007,12 +5966,11 @@ var barchart = function () {
                 g.select('.x').transition()
                     .duration(2000).remove();
 
-
                 g.append('g')
                     .attr('class', 'x axis')
                     .transition()
                     .duration(2000)
-                    .attr('transform', 'translate(0,' + height + ')')
+                    .attr('transform', ("translate(0," + height + ")"))
                     .call(axisBottom(xScale))
                     .selectAll('text')
                     .style('font-size', '12px')
@@ -6035,26 +5993,26 @@ var barchart = function () {
     }
 
     chart.x = function (_) {
-        if (!arguments.length) return xValue
+        if (!arguments.length) { return xValue }
         xValue = _;
         return chart
     };
 
     chart.y = function (_) {
-        if (!arguments.length) return yValue
+        if (!arguments.length) { return yValue }
         yValue = _;
         return chart
     };
     chart.margin = function (_) {
-        if (!arguments.length) return margin
+        if (!arguments.length) { return margin }
         margin = _;
         return chart
     };
 
     chart.data = function (_) {
-        if (!arguments.length) return data
+        if (!arguments.length) { return data }
         data = _;
-        if (typeof updateData === 'function') updateData();
+        if (typeof updateData === 'function') { updateData(); }
         return chart
     };
 
@@ -6383,46 +6341,43 @@ ReflectContext.prototype = {
 };
 
 var linechart = function () {
+    var xValue = function (d) { return d[0]; };
+    var yValue = function (d) { return d[1]; };
+    var xScale = time();
+    var yScale = linear$2();
+    var line$$1 = line();
+    var margin = {
+        top: 20,
+        right: 20,
+        bottom: 20,
+        left: 20,
+    };
+    var data = [];
+    var updateData;
 
-    var xValue = function (d) {
-            return d[0]
-        },
-        yValue = function (d) {
-            return d[1]
-        },
-        xScale = time(),
-        yScale = linear$2(),
-        line$$1 = line(),
-        margin = {
-            top: 20,
-            right: 20,
-            bottom: 20,
-            left: 20
-        },
-        data = [],
-        updateData;
+    function X(d) {
+        return xScale(d[0])
+    }
+
+    function Y(d) {
+        return yScale(d[1])
+    }
 
     function chart(selection$$1) {
+        selection$$1.each(function linechart() {
+            var width = this.clientWidth - margin.left - margin.right;
+            var height = this.clientHeight - margin.top - margin.bottom;
 
-        selection$$1.each(function () {
-            var width = this.clientWidth - margin.left - margin.right,
-                height = this.clientHeight - margin.top - margin.bottom;
+            data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i)]; });
 
-            data = data.map(function (d, i) {
-                return [xValue.call(data, d, i), yValue.call(data, d, i)]
-            });
 
             xScale
-                .domain(extent(data, function (d) {
-                    return d[0]
-                }))
+                .domain(extent(data, function (d) { return d[0]; }))
                 .range([0, width])
                 .nice();
 
             yScale
-                .domain([0, max(data, function (d) {
-                    return d[1]
-                })])
+                .domain([0, max(data, function (d) { return d[1]; })])
                 .range([height, 0]);
 
             line$$1.x(X).y(Y);
@@ -6430,7 +6385,7 @@ var linechart = function () {
             var svg = select(this);
 
             var g = svg.append('g')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                .attr('transform', ("translate(" + (margin.left) + "," + (margin.top) + ")"));
 
             g.append('path')
                 .data([data])
@@ -6439,7 +6394,7 @@ var linechart = function () {
 
             g.append('g')
                 .attr('class', 'x axis')
-                .attr('transform', 'translate(0,' + height + ')')
+                .attr('transform', ("translate(0," + height + ")"))
                 .call(axisBottom(xScale));
 
             g.append('g')
@@ -6447,22 +6402,13 @@ var linechart = function () {
                 .call(axisLeft(yScale));
 
             updateData = function () {
-
-
-                data = data.map(function (d, i) {
-                    return [xValue.call(data, d, i), yValue.call(data, d, i)]
-                });
-
+                data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i)]; });
 
                 xScale
-                    .domain(extent(data, function (d) {
-                        return d[0]
-                    }));
+                    .domain(extent(data, function (d) { return d[0]; }));
 
                 yScale
-                    .domain([0, max(data, function (d) {
-                        return d[1]
-                    })]);
+                    .domain([0, max(data, function (d) { return d[1]; })]);
 
                 g.select('.line').transition()
                     .duration(2000)
@@ -6482,7 +6428,7 @@ var linechart = function () {
 
                 g.append('g')
                     .attr('class', 'x axis')
-                    .attr('transform', 'translate(0,' + height + ')')
+                    .attr('transform', ("translate(0," + height + ")"))
                     .call(axisBottom(xScale));
 
                 g.append('g')
@@ -6490,50 +6436,43 @@ var linechart = function () {
                     .call(axisLeft(yScale));
             };
         });
-
     }
 
-    function X(d) {
-        return xScale(d[0])
-    }
 
-    function Y(d) {
-        return yScale(d[1])
-    }
     chart.x = function (_) {
-        if (!arguments.length) return xValue
+        if (!arguments.length) { return xValue }
         xValue = _;
         return chart
     };
 
     chart.y = function (_) {
-        if (!arguments.length) return yValue
+        if (!arguments.length) { return yValue }
         yValue = _;
         return chart
     };
     chart.margin = function (_) {
-        if (!arguments.length) return margin
+        if (!arguments.length) { return margin }
         margin = _;
         return chart
     };
 
     chart.data = function (_) {
-        if (!arguments.length) return data
+        if (!arguments.length) { return data }
         data = _;
-        if (typeof updateData === 'function') updateData();
+        if (typeof updateData === 'function') { updateData(); }
         return chart
     };
 
     return chart
 };
 
-var version = '1.1.0';
+var version$1 = "1.2.1";
 
 exports.bullet = bullet;
 exports.svg = SVG;
 exports.barchart = barchart;
 exports.linechart = linechart;
-exports.version = version;
+exports.version = version$1;
 exports.bisect = bisectRight;
 exports.bisectRight = bisectRight;
 exports.bisectLeft = bisectLeft;

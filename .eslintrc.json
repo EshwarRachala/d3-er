@@ -1,17 +1,28 @@
 {
     "env": {
         "browser": true,
+        "amd": true,
         "commonjs": true,
         "es6": true
     },
-    "extends": "eslint:recommended",
+    "extends": "airbnb",
     "parserOptions": {
         "ecmaFeatures": {
-            "jsx": true
+            "jsx": true,
+            "arrowFunctions": true,
+            "classes": true,
+            "modules": true
         },
         "sourceType": "module"
     },
     "rules": {
+        "padded-blocks": "off",
+        "func-names": "off",
+        "prefer-template": "off",
+        "no-underscore-dangle": "off",
+        "comma-dangle":"off",
+        "eol-last": "off",
+        "no-shadow": "off",
         "indent": [
             "error",
             4

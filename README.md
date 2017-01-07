@@ -1,6 +1,7 @@
 # d3-er
 
-Custom d3 module created using some d3 modules(d3-selection,d3-transition etc.) and some extra functions 
+[![npm version](https://badge.fury.io/js/d3-er.svg)]
+(http://badge.fury.io/js/d3-er)
 
 ## Installing
 
@@ -15,8 +16,7 @@ d3.select('body').style('background-color', 'red');
 
 ## Download File
 
-- https://github.com/EshwarRachala/d3-er/blob/master/build/d3-er.js.
-- https://github.com/EshwarRachala/d3-er/blob/master/build/d3-er.min.js.
+- https://github.com/EshwarRachala/d3-er/blob/dev/build/d3-er.zip
 
 ## Test in browser
 

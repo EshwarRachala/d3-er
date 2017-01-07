@@ -1,61 +1,48 @@
-import * as d3_selection from 'd3-selection'
-import * as d3_array from 'd3-array'
-import * as d3_axis from 'd3-axis'
-import * as d3_scale from 'd3-scale'
+import * as d3Sel from 'd3-selection'
+import * as d3Array from 'd3-array'
+import * as d3Axis from 'd3-axis'
+import * as d3Scale from 'd3-scale'
 
 export default function () {
-
-    var xValue = function (d) {
-            return d[0]
-        },
-        yValue = function (d) {
-            return d[1]
-        },
-        xScale = d3_scale.scaleLinear(),
-        yScale = d3_scale.scaleBand(),
-        margin = {
-            top: 20,
-            right: 20,
-            bottom: 20,
-            left: 20
-        },
-        data = [],
-        updateData
-
+    let xValue = d => d[0]
+    let yValue = d => d[1]
+    const xScale = d3Scale.scaleLinear()
+    const yScale = d3Scale.scaleBand()
+    let margin = {
+        top: 20,
+        right: 20,
+        bottom: 20,
+        left: 20,
+    }
+    let data = []
+    let updateData
 
     function chart(selection) {
-
         selection.each(function () {
+            const width = this.clientWidth - margin.left - margin.right
+            const height = this.clientHeight - margin.top - margin.bottom
 
-            var width = this.clientWidth - margin.left - margin.right,
-                height = this.clientHeight - margin.top - margin.bottom
-
-            data = data.map(function (d, i) {
-                return [xValue.call(data, d, i), yValue.call(data, d, i)]
-            })
+            data = data.map((d, i) => [xValue.call(data, d, i), yValue.call(data, d, i)])
 
             xScale
-                .domain([0, d3_array.max(data, function (d) {
-                    return d[0]
-                })])
+                .domain([0, d3Array.max(data, d => d[0])])
                 .range([0, width])
                 .nice()
 
             yScale
-                .domain(data.map(function (d) {
-                    return d[1]
-                }))
+                .domain(data.map(d => d[1]))
                 .range([height, 0])
                 .padding(0.1)
 
-            var svg = d3_selection.select(this)
+            const svg = d3Sel.select(this)
 
-            var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+            const g = svg.append('g')
+                         .attr('transform', `translate(${margin.left},${margin.right})`)
 
             g.append('g')
                 .attr('class', 'x axis')
-                .attr('transform', 'translate(0,' + height + ')')
-                .call(d3_axis.axisBottom(xScale))
+                .attr('transform', `translate(0,${height})`)
+                .call(d3Axis.axisBottom(xScale))
                 .selectAll('text')
                 .style('font-size', '12px')
                 .style('text-anchor', 'end')
@@ -64,7 +51,7 @@ export default function () {
 
             g.append('g')
                 .attr('class', 'y axis')
-                .call(d3_axis.axisLeft(yScale))
+                .call(d3Axis.axisLeft(yScale))
                 .selectAll('text')
                 .style('font-size', '12px')
                 .style('text-anchor', 'end')
@@ -76,37 +63,25 @@ export default function () {
                 .enter()
                 .append('rect')
                 .attr('class', 'bar')
-                .attr('y', function (d) {
-                    return yScale(d[1])
-                })
+                .attr('y', d => yScale(d[1]))
                 .attr('height', yScale.bandwidth())
-                .attr('width', function (d) {
-                    return xScale(d[0])
-                })
+                .attr('width', d => xScale(d[0]))
 
 
-            updateData = function () {
-
-                data = data.map(function (d, i) {
-                    return [xValue.call(data, d, i), yValue.call(data, d, i)]
-                })
-
+            updateData = function update() {
+                data = data.map((d, i) => [xValue.call(data, d, i), yValue.call(data, d, i)])
 
                 xScale
-                    .domain([0, d3_array.max(data, function (d) {
-                        return d[0]
-                    })])
+                    .domain([0, d3Array.max(data, d => d[0])])
                     .range([0, width])
                     .nice()
 
                 yScale
-                    .domain(data.map(function (d) {
-                        return d[1]
-                    }))
+                    .domain(data.map(d => d[1]))
                     .range([height, 0])
                     .padding(0.1)
 
-                var bar = g.selectAll('.bar').data(data)
+                const bar = g.selectAll('.bar').data(data)
 
                 bar.enter()
                     .append('rect')
@@ -114,13 +89,9 @@ export default function () {
                     .transition()
                     .duration(2000)
                     .attr('class', 'bar')
-                    .attr('y', function (d) {
-                        return yScale(d[1])
-                    })
+                    .attr('y', d => yScale(d[1]))
                     .attr('height', yScale.bandwidth())
-                    .attr('width', function (d) {
-                        return xScale(d[0])
-                    })
+                    .attr('width', d => xScale(d[0]))
 
                 bar.exit().remove()
 
@@ -129,13 +100,12 @@ export default function () {
                 g.select('.x').transition()
                     .duration(2000).remove()
 
-
                 g.append('g')
                     .attr('class', 'x axis')
                     .transition()
                     .duration(2000)
-                    .attr('transform', 'translate(0,' + height + ')')
-                    .call(d3_axis.axisBottom(xScale))
+                    .attr('transform', `translate(0,${height})`)
+                    .call(d3Axis.axisBottom(xScale))
                     .selectAll('text')
                     .style('font-size', '12px')
                     .style('text-anchor', 'end')
@@ -146,7 +116,7 @@ export default function () {
                     .attr('class', 'y axis')
                     .transition()
                     .duration(2000)
-                    .call(d3_axis.axisLeft(yScale))
+                    .call(d3Axis.axisLeft(yScale))
                     .selectAll('text')
                     .style('font-size', '12px')
                     .style('text-anchor', 'end')

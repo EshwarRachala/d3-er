@@ -1,10 +1,10 @@
-import * as d3_selection from 'd3-selection'
+import * as d3Selection from 'd3-selection'
 
 export function SVG(elem) {
 
     if (!arguments.length) return null
 
-    var svg = d3_selection.select(elem).append('svg')
+    const svg = d3Selection.select(elem).append('svg')
 
     svg.attr('width', '100%')
 
