@@ -15,8 +15,7 @@ d3.select('body').style('background-color', 'red');
 
 ## Download File
 
-- https://github.com/EshwarRachala/d3-er/blob/master/build/d3-er.js.
-- https://github.com/EshwarRachala/d3-er/blob/master/build/d3-er.min.js.
+- https://github.com/EshwarRachala/d3-er/blob/dev/build/d3-er.zip
 
 ## Test in browser
 

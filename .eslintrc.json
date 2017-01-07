@@ -8,7 +8,10 @@
     "extends": "airbnb",
     "parserOptions": {
         "ecmaFeatures": {
-            "jsx": true
+            "jsx": true,
+            "arrowFunctions": true,
+            "classes": true,
+            "modules": true
         },
         "sourceType": "module"
     },
