@@ -7,22 +7,17 @@ export default function () {
     let orient = 'left'
     let reverse = false
     let duration = 0
-    let ranges = function (d) {
-        return d.ranges
-    }
-    let markers = function (d) {
-        return d.markers
-    }
-    let measures = function (d) {
-        return d.measures
-    }
+    let ranges = d => d.ranges
+    let markers = d => d.markers
+    let measures = d => d.measures
+
     let width = 380
     let height = 30
     let tickFormat = null
 
     function bulletTranslate(x) {
         return function (d) {
-            return 'translate(' + x(d) + ',0)'
+            return `translate(${x(d)},0)`
         }
     }
 
@@ -55,7 +50,7 @@ export default function () {
             const range = group.selectAll('rect.range').data(rangez)
 
             range.enter().append('rect')
-                .attr('class', (d, i) => 'range s' + i)
+                .attr('class', (d, i) => `range s${i}`)
                 .attr('width', w0)
                 .attr('height', height)
                 .attr('x', reverse ? x0 : 0)
@@ -75,7 +70,7 @@ export default function () {
                 .data(measurez)
 
             measure.enter().append('rect')
-                .attr('class', (d, i) => 'measure s' + i)
+                .attr('class', (d, i) => `measure s${i}`)
                 .attr('width', w0)
                 .attr('height', height / 3)
                 .attr('x', reverse ? x0 : 0)

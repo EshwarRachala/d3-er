@@ -5646,22 +5646,17 @@ var bullet = function () {
     var orient = 'left';
     var reverse = false;
     var duration = 0;
-    var ranges = function (d) {
-        return d.ranges
-    };
-    var markers = function (d) {
-        return d.markers
-    };
-    var measures = function (d) {
-        return d.measures
-    };
+    var ranges = function (d) { return d.ranges; };
+    var markers = function (d) { return d.markers; };
+    var measures = function (d) { return d.measures; };
+
     var width = 380;
     var height = 30;
     var tickFormat = null;
 
     function bulletTranslate(x) {
         return function (d) {
-            return 'translate(' + x(d) + ',0)'
+            return ("translate(" + (x(d)) + ",0)")
         }
     }
 
@@ -5696,7 +5691,7 @@ var bullet = function () {
             var range$$1 = group.selectAll('rect.range').data(rangez);
 
             range$$1.enter().append('rect')
-                .attr('class', function (d, i) { return 'range s' + i; })
+                .attr('class', function (d, i) { return ("range s" + i); })
                 .attr('width', w0)
                 .attr('height', height)
                 .attr('x', reverse ? x0 : 0)
@@ -5716,7 +5711,7 @@ var bullet = function () {
                 .data(measurez);
 
             measure.enter().append('rect')
-                .attr('class', function (d, i) { return 'measure s' + i; })
+                .attr('class', function (d, i) { return ("measure s" + i); })
                 .attr('width', w0)
                 .attr('height', height / 3)
                 .attr('x', reverse ? x0 : 0)
@@ -5907,11 +5902,12 @@ var barchart = function () {
 
             var svg = select(this);
 
-            var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            var g = svg.append('g')
+                         .attr('transform', ("translate(" + (margin.left) + "," + (margin.right) + ")"));
 
             g.append('g')
                 .attr('class', 'x axis')
-                .attr('transform', 'translate(0,' + height + ')')
+                .attr('transform', ("translate(0," + height + ")"))
                 .call(axisBottom(xScale))
                 .selectAll('text')
                 .style('font-size', '12px')
@@ -5974,7 +5970,7 @@ var barchart = function () {
                     .attr('class', 'x axis')
                     .transition()
                     .duration(2000)
-                    .attr('transform', 'translate(0,' + height + ')')
+                    .attr('transform', ("translate(0," + height + ")"))
                     .call(axisBottom(xScale))
                     .selectAll('text')
                     .style('font-size', '12px')
@@ -6474,15 +6470,13 @@ var linechart = function () {
     return chart
 };
 
-var version = "1.2.1";
-
-var Version = version;
+var version$1 = "1.2.1";
 
 exports.bullet = bullet;
 exports.svg = SVG;
 exports.barchart = barchart;
 exports.linechart = linechart;
-exports.version = Version;
+exports.version = version$1;
 exports.bisect = bisectRight;
 exports.bisectRight = bisectRight;
 exports.bisectLeft = bisectLeft;

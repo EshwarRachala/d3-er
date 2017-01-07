@@ -32,7 +32,7 @@
     "postpublish": "zip -j build/d3-er.zip -- LICENSE README.md build/d3-er.js build/d3-er.min.js",
     "check": "npm install -g && npm link",
     "build": "webpack --progress --hide-modules --config webpack.config.js",
-    "predeploy": "npm run lint &&npm run rollup && npm run pretest && npm run test && npm run postpublish && npm run check && npm run build",
+    "all": "npm run lint &&npm run rollup && npm run pretest && npm run test && npm run postpublish && npm run check && npm run build",
     "dev": "webpack-dev-server --inline --hot  --config webpack.config.js",
     "deploy": "surge --project . --domain d3examples.surge.sh"
   },
