@@ -5,12 +5,8 @@ import * as d3Scale from 'd3-scale'
 import * as d3Shape from 'd3-shape'
 
 export default function () {
-    let xValue = function (d) {
-        return d[0]
-    }
-    let yValue = function (d) {
-        return d[1]
-    }
+    let xValue = d => d[0]
+    let yValue = d => d[1]
     const xScale = d3Scale.scaleTime()
     const yScale = d3Scale.scaleLinear()
     const line = d3Shape.line()

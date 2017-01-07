@@ -6341,12 +6341,8 @@ ReflectContext.prototype = {
 };
 
 var linechart = function () {
-    var xValue = function (d) {
-        return d[0]
-    };
-    var yValue = function (d) {
-        return d[1]
-    };
+    var xValue = function (d) { return d[0]; };
+    var yValue = function (d) { return d[1]; };
     var xScale = time();
     var yScale = linear$2();
     var line$$1 = line();
