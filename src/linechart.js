@@ -1,58 +1,56 @@
-import * as d3_selection from 'd3-selection'
-import * as d3_array from 'd3-array'
-import * as d3_axis from 'd3-axis'
-import * as d3_scale from 'd3-scale'
-import * as d3_line from 'd3-shape'
+import * as d3Selection from 'd3-selection'
+import * as d3Array from 'd3-array'
+import * as d3Axis from 'd3-axis'
+import * as d3Scale from 'd3-scale'
+import * as d3Shape from 'd3-shape'
 
 export default function () {
-
-    var xValue = function (d) {
-            return d[0]
-        },
-        yValue = function (d) {
-            return d[1]
-        },
-        xScale = d3_scale.scaleTime(),
-        yScale = d3_scale.scaleLinear(),
-        line = d3_line.line(),
-        margin = {
-            top: 20,
-            right: 20,
-            bottom: 20,
-            left: 20
-        },
-        data = [],
-        updateData
+    let xValue = function (d) {
+        return d[0]
+    }
+    let yValue = function (d) {
+        return d[1]
+    }
+    const xScale = d3Scale.scaleTime()
+    const yScale = d3Scale.scaleLinear()
+    const line = d3Shape.line()
+    let margin = {
+        top: 20,
+        right: 20,
+        bottom: 20,
+        left: 20,
+    }
+    let data = []
+    let updateData
 
     function chart(selection) {
-
-        selection.each(function () {
-            var width = this.clientWidth - margin.left - margin.right,
-                height = this.clientHeight - margin.top - margin.bottom
+        selection.each(function linechart() {
+            const width = this.clientWidth - margin.left - margin.right
+            const height = this.clientHeight - margin.top - margin.bottom
 
             data = data.map(function (d, i) {
                 return [xValue.call(data, d, i), yValue.call(data, d, i)]
             })
 
             xScale
-                .domain(d3_array.extent(data, function (d) {
+                .domain(d3Array.extent(data, (d) => {
                     return d[0]
                 }))
                 .range([0, width])
                 .nice()
 
             yScale
-                .domain([0, d3_array.max(data, function (d) {
+                .domain([0, d3Array.max(data, (d) => {
                     return d[1]
                 })])
                 .range([height, 0])
 
             line.x(X).y(Y)
 
-            var svg = d3_selection.select(this)
+            let svg = d3Selection.select(this)
 
-            var g = svg.append('g')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+            let g = svg.append('g')
+                .attr('transform', `translate(${  margin.left  },${  margin.top  })`)
 
             g.append('path')
                 .data([data])
@@ -61,28 +59,26 @@ export default function () {
 
             g.append('g')
                 .attr('class', 'x axis')
-                .attr('transform', 'translate(0,' + height + ')')
-                .call(d3_axis.axisBottom(xScale))
+                .attr('transform', `translate(0,${  height  })`)
+                .call(d3Axis.axisBottom(xScale))
 
             g.append('g')
                 .attr('class', 'y axis')
-                .call(d3_axis.axisLeft(yScale))
+                .call(d3Axis.axisLeft(yScale))
 
             updateData = function () {
-
-
-                data = data.map(function (d, i) {
+                data = data.map((d, i) => {
                     return [xValue.call(data, d, i), yValue.call(data, d, i)]
                 })
 
 
                 xScale
-                    .domain(d3_array.extent(data, function (d) {
+                    .domain(d3Array.extent(data, (d) => {
                         return d[0]
                     }))
 
                 yScale
-                    .domain([0, d3_array.max(data, function (d) {
+                    .domain([0, d3Array.max(data, (d) => {
                         return d[1]
                     })])
 
@@ -104,15 +100,14 @@ export default function () {
 
                 g.append('g')
                     .attr('class', 'x axis')
-                    .attr('transform', 'translate(0,' + height + ')')
-                    .call(d3_axis.axisBottom(xScale))
+                    .attr('transform', `translate(0,${  height  })`)
+                    .call(d3Axis.axisBottom(xScale))
 
                 g.append('g')
                     .attr('class', 'y axis')
-                    .call(d3_axis.axisLeft(yScale))
+                    .call(d3Axis.axisLeft(yScale))
             }
         })
-
     }
 
     function X(d) {

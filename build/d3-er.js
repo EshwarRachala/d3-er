@@ -1,6 +1,6 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-    typeof define === 'function' && define.amd ? define(['exports'], factory) :
+    typeof define === 'function' && define.amd ? define('d3', ['exports'], factory) :
     (factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
@@ -5816,51 +5816,51 @@ function bullet() {
     }
 
     bullet.orient = function (x) {
-        if (!arguments.length) return orient
+        if (!arguments.length) { return orient }
         orient = x;
         reverse = orient === 'right' || orient === 'bottom';
         return bullet
     };
 
     bullet.ranges = function (x) {
-        if (!arguments.length) return ranges
+        if (!arguments.length) { return ranges }
         ranges = x;
         return bullet
     };
 
     bullet.markers = function (x) {
-        if (!arguments.length) return markers
+        if (!arguments.length) { return markers }
         markers = x;
         return bullet
     };
 
     // measures (actual, forecast)
     bullet.measures = function (x) {
-        if (!arguments.length) return measures
+        if (!arguments.length) { return measures }
         measures = x;
         return bullet
     };
 
     bullet.width = function (x) {
-        if (!arguments.length) return width
+        if (!arguments.length) { return width }
         width = x;
         return bullet
     };
 
     bullet.height = function (x) {
-        if (!arguments.length) return height
+        if (!arguments.length) { return height }
         height = x;
         return bullet
     };
 
     bullet.tickFormat = function (x) {
-        if (!arguments.length) return tickFormat
+        if (!arguments.length) { return tickFormat }
         tickFormat = x;
         return bullet
     };
 
     bullet.duration = function (x) {
-        if (!arguments.length) return duration
+        if (!arguments.length) { return duration }
         duration = x;
         return bullet
     };
@@ -5870,7 +5870,7 @@ function bullet() {
 
 function SVG(elem) {
 
-    if (!arguments.length) return null
+    if (!arguments.length) { return null }
 
     var svg = select(elem).append('svg');
 
@@ -6035,26 +6035,26 @@ var barchart = function () {
     }
 
     chart.x = function (_) {
-        if (!arguments.length) return xValue
+        if (!arguments.length) { return xValue }
         xValue = _;
         return chart
     };
 
     chart.y = function (_) {
-        if (!arguments.length) return yValue
+        if (!arguments.length) { return yValue }
         yValue = _;
         return chart
     };
     chart.margin = function (_) {
-        if (!arguments.length) return margin
+        if (!arguments.length) { return margin }
         margin = _;
         return chart
     };
 
     chart.data = function (_) {
-        if (!arguments.length) return data
+        if (!arguments.length) { return data }
         data = _;
-        if (typeof updateData === 'function') updateData();
+        if (typeof updateData === 'function') { updateData(); }
         return chart
     };
 
@@ -6383,30 +6383,28 @@ ReflectContext.prototype = {
 };
 
 var linechart = function () {
-
     var xValue = function (d) {
-            return d[0]
-        },
-        yValue = function (d) {
-            return d[1]
-        },
-        xScale = time(),
-        yScale = linear$2(),
-        line$$1 = line(),
-        margin = {
-            top: 20,
-            right: 20,
-            bottom: 20,
-            left: 20
-        },
-        data = [],
-        updateData;
+        return d[0]
+    };
+    var yValue = function (d) {
+        return d[1]
+    };
+    var xScale = time();
+    var yScale = linear$2();
+    var line$$1 = line();
+    var margin = {
+        top: 20,
+        right: 20,
+        bottom: 20,
+        left: 20,
+    };
+    var data = [];
+    var updateData;
 
     function chart(selection$$1) {
-
-        selection$$1.each(function () {
-            var width = this.clientWidth - margin.left - margin.right,
-                height = this.clientHeight - margin.top - margin.bottom;
+        selection$$1.each(function linechart() {
+            var width = this.clientWidth - margin.left - margin.right;
+            var height = this.clientHeight - margin.top - margin.bottom;
 
             data = data.map(function (d, i) {
                 return [xValue.call(data, d, i), yValue.call(data, d, i)]
@@ -6430,7 +6428,7 @@ var linechart = function () {
             var svg = select(this);
 
             var g = svg.append('g')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                .attr('transform', ("translate(" + (margin.left) + "," + (margin.top) + ")"));
 
             g.append('path')
                 .data([data])
@@ -6439,7 +6437,7 @@ var linechart = function () {
 
             g.append('g')
                 .attr('class', 'x axis')
-                .attr('transform', 'translate(0,' + height + ')')
+                .attr('transform', ("translate(0," + height + ")"))
                 .call(axisBottom(xScale));
 
             g.append('g')
@@ -6447,8 +6445,6 @@ var linechart = function () {
                 .call(axisLeft(yScale));
 
             updateData = function () {
-
-
                 data = data.map(function (d, i) {
                     return [xValue.call(data, d, i), yValue.call(data, d, i)]
                 });
@@ -6482,7 +6478,7 @@ var linechart = function () {
 
                 g.append('g')
                     .attr('class', 'x axis')
-                    .attr('transform', 'translate(0,' + height + ')')
+                    .attr('transform', ("translate(0," + height + ")"))
                     .call(axisBottom(xScale));
 
                 g.append('g')
@@ -6490,7 +6486,6 @@ var linechart = function () {
                     .call(axisLeft(yScale));
             };
         });
-
     }
 
     function X(d) {
@@ -6501,26 +6496,26 @@ var linechart = function () {
         return yScale(d[1])
     }
     chart.x = function (_) {
-        if (!arguments.length) return xValue
+        if (!arguments.length) { return xValue }
         xValue = _;
         return chart
     };
 
     chart.y = function (_) {
-        if (!arguments.length) return yValue
+        if (!arguments.length) { return yValue }
         yValue = _;
         return chart
     };
     chart.margin = function (_) {
-        if (!arguments.length) return margin
+        if (!arguments.length) { return margin }
         margin = _;
         return chart
     };
 
     chart.data = function (_) {
-        if (!arguments.length) return data
+        if (!arguments.length) { return data }
         data = _;
-        if (typeof updateData === 'function') updateData();
+        if (typeof updateData === 'function') { updateData(); }
         return chart
     };
 
