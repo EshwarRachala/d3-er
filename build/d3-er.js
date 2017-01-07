@@ -5882,47 +5882,37 @@ function SVG(elem) {
 }
 
 var barchart = function () {
-
     var xValue = function (d) {
-            return d[0]
-        },
-        yValue = function (d) {
-            return d[1]
-        },
-        xScale = linear$2(),
-        yScale = band(),
-        margin = {
-            top: 20,
-            right: 20,
-            bottom: 20,
-            left: 20
-        },
-        data = [],
-        updateData;
-
+        return d[0]
+    };
+    var yValue = function (d) {
+        return d[1]
+    };
+    var xScale = linear$2();
+    var yScale = band();
+    var margin = {
+        top: 20,
+        right: 20,
+        bottom: 20,
+        left: 20,
+    };
+    var data = [];
+    var updateData;
 
     function chart(selection$$1) {
-
         selection$$1.each(function () {
+            var width = this.clientWidth - margin.left - margin.right;
+            var height = this.clientHeight - margin.top - margin.bottom;
 
-            var width = this.clientWidth - margin.left - margin.right,
-                height = this.clientHeight - margin.top - margin.bottom;
-
-            data = data.map(function (d, i) {
-                return [xValue.call(data, d, i), yValue.call(data, d, i)]
-            });
+            data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i)]; });
 
             xScale
-                .domain([0, max(data, function (d) {
-                    return d[0]
-                })])
+                .domain([0, max(data, function (d) { return d[0]; })])
                 .range([0, width])
                 .nice();
 
             yScale
-                .domain(data.map(function (d) {
-                    return d[1]
-                }))
+                .domain(data.map(function (d) { return d[1]; }))
                 .range([height, 0])
                 .padding(0.1);
 
@@ -5954,33 +5944,21 @@ var barchart = function () {
                 .enter()
                 .append('rect')
                 .attr('class', 'bar')
-                .attr('y', function (d) {
-                    return yScale(d[1])
-                })
+                .attr('y', function (d) { return yScale(d[1]); })
                 .attr('height', yScale.bandwidth())
-                .attr('width', function (d) {
-                    return xScale(d[0])
-                });
+                .attr('width', function (d) { return xScale(d[0]); });
 
 
             updateData = function () {
-
-                data = data.map(function (d, i) {
-                    return [xValue.call(data, d, i), yValue.call(data, d, i)]
-                });
-
+                data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i)]; });
 
                 xScale
-                    .domain([0, max(data, function (d) {
-                        return d[0]
-                    })])
+                    .domain([0, max(data, function (d) { return d[0]; })])
                     .range([0, width])
                     .nice();
 
                 yScale
-                    .domain(data.map(function (d) {
-                        return d[1]
-                    }))
+                    .domain(data.map(function (d) { return d[1]; }))
                     .range([height, 0])
                     .padding(0.1);
 
@@ -5992,13 +5970,9 @@ var barchart = function () {
                     .transition()
                     .duration(2000)
                     .attr('class', 'bar')
-                    .attr('y', function (d) {
-                        return yScale(d[1])
-                    })
+                    .attr('y', function (d) { return yScale(d[1]); })
                     .attr('height', yScale.bandwidth())
-                    .attr('width', function (d) {
-                        return xScale(d[0])
-                    });
+                    .attr('width', function (d) { return xScale(d[0]); });
 
                 bar.exit().remove();
 
@@ -6006,7 +5980,6 @@ var barchart = function () {
                     .duration(2000).remove();
                 g.select('.x').transition()
                     .duration(2000).remove();
-
 
                 g.append('g')
                     .attr('class', 'x axis')
@@ -6401,26 +6374,29 @@ var linechart = function () {
     var data = [];
     var updateData;
 
+    function X(d) {
+        return xScale(d[0])
+    }
+
+    function Y(d) {
+        return yScale(d[1])
+    }
+
     function chart(selection$$1) {
         selection$$1.each(function linechart() {
             var width = this.clientWidth - margin.left - margin.right;
             var height = this.clientHeight - margin.top - margin.bottom;
 
-            data = data.map(function (d, i) {
-                return [xValue.call(data, d, i), yValue.call(data, d, i)]
-            });
+            data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i)]; });
+
 
             xScale
-                .domain(extent(data, function (d) {
-                    return d[0]
-                }))
+                .domain(extent(data, function (d) { return d[0]; }))
                 .range([0, width])
                 .nice();
 
             yScale
-                .domain([0, max(data, function (d) {
-                    return d[1]
-                })])
+                .domain([0, max(data, function (d) { return d[1]; })])
                 .range([height, 0]);
 
             line$$1.x(X).y(Y);
@@ -6445,20 +6421,13 @@ var linechart = function () {
                 .call(axisLeft(yScale));
 
             updateData = function () {
-                data = data.map(function (d, i) {
-                    return [xValue.call(data, d, i), yValue.call(data, d, i)]
-                });
-
+                data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i)]; });
 
                 xScale
-                    .domain(extent(data, function (d) {
-                        return d[0]
-                    }));
+                    .domain(extent(data, function (d) { return d[0]; }));
 
                 yScale
-                    .domain([0, max(data, function (d) {
-                        return d[1]
-                    })]);
+                    .domain([0, max(data, function (d) { return d[1]; })]);
 
                 g.select('.line').transition()
                     .duration(2000)
@@ -6488,13 +6457,7 @@ var linechart = function () {
         });
     }
 
-    function X(d) {
-        return xScale(d[0])
-    }
 
-    function Y(d) {
-        return yScale(d[1])
-    }
     chart.x = function (_) {
         if (!arguments.length) { return xValue }
         xValue = _;

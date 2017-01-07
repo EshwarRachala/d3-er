@@ -23,34 +23,37 @@ export default function () {
     let data = []
     let updateData
 
+    function X(d) {
+        return xScale(d[0])
+    }
+
+    function Y(d) {
+        return yScale(d[1])
+    }
+
     function chart(selection) {
         selection.each(function linechart() {
             const width = this.clientWidth - margin.left - margin.right
             const height = this.clientHeight - margin.top - margin.bottom
 
-            data = data.map(function (d, i) {
-                return [xValue.call(data, d, i), yValue.call(data, d, i)]
-            })
+            data = data.map((d, i) => [xValue.call(data, d, i), yValue.call(data, d, i)])
+
 
             xScale
-                .domain(d3Array.extent(data, (d) => {
-                    return d[0]
-                }))
+                .domain(d3Array.extent(data, d => d[0]))
                 .range([0, width])
                 .nice()
 
             yScale
-                .domain([0, d3Array.max(data, (d) => {
-                    return d[1]
-                })])
+                .domain([0, d3Array.max(data, d => d[1])])
                 .range([height, 0])
 
             line.x(X).y(Y)
 
-            let svg = d3Selection.select(this)
+            const svg = d3Selection.select(this)
 
-            let g = svg.append('g')
-                .attr('transform', `translate(${  margin.left  },${  margin.top  })`)
+            const g = svg.append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`)
 
             g.append('path')
                 .data([data])
@@ -59,7 +62,7 @@ export default function () {
 
             g.append('g')
                 .attr('class', 'x axis')
-                .attr('transform', `translate(0,${  height  })`)
+                .attr('transform', `translate(0,${height})`)
                 .call(d3Axis.axisBottom(xScale))
 
             g.append('g')
@@ -67,20 +70,13 @@ export default function () {
                 .call(d3Axis.axisLeft(yScale))
 
             updateData = function () {
-                data = data.map((d, i) => {
-                    return [xValue.call(data, d, i), yValue.call(data, d, i)]
-                })
-
+                data = data.map((d, i) => [xValue.call(data, d, i), yValue.call(data, d, i)])
 
                 xScale
-                    .domain(d3Array.extent(data, (d) => {
-                        return d[0]
-                    }))
+                    .domain(d3Array.extent(data, d => d[0]))
 
                 yScale
-                    .domain([0, d3Array.max(data, (d) => {
-                        return d[1]
-                    })])
+                    .domain([0, d3Array.max(data, d => d[1])])
 
                 g.select('.line').transition()
                     .duration(2000)
@@ -100,7 +96,7 @@ export default function () {
 
                 g.append('g')
                     .attr('class', 'x axis')
-                    .attr('transform', `translate(0,${  height  })`)
+                    .attr('transform', `translate(0,${height})`)
                     .call(d3Axis.axisBottom(xScale))
 
                 g.append('g')
@@ -110,13 +106,7 @@ export default function () {
         })
     }
 
-    function X(d) {
-        return xScale(d[0])
-    }
 
-    function Y(d) {
-        return yScale(d[1])
-    }
     chart.x = function (_) {
         if (!arguments.length) return xValue
         xValue = _
