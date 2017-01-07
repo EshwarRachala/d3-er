@@ -36,11 +36,12 @@ export default function () {
 
             const svg = d3Sel.select(this)
 
-            const g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+            const g = svg.append('g')
+                         .attr('transform', `translate(${margin.left},${margin.right})`)
 
             g.append('g')
                 .attr('class', 'x axis')
-                .attr('transform', 'translate(0,' + height + ')')
+                .attr('transform', `translate(0,${height})`)
                 .call(d3Axis.axisBottom(xScale))
                 .selectAll('text')
                 .style('font-size', '12px')
@@ -103,7 +104,7 @@ export default function () {
                     .attr('class', 'x axis')
                     .transition()
                     .duration(2000)
-                    .attr('transform', 'translate(0,' + height + ')')
+                    .attr('transform', `translate(0,${height})`)
                     .call(d3Axis.axisBottom(xScale))
                     .selectAll('text')
                     .style('font-size', '12px')
