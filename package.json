@@ -27,7 +27,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.json src/** client/**",
     "rollup": "rm -rf build && mkdir build && npm run lint && rollup -c -o build/d3-er.js --index.js",
-    "pretest": "uglifyjs build/d3-er.js -c -m -o build/d3-er.min.js",
+    "pretest": "npm run rollup && uglifyjs build/d3-er.js -c -m -o build/d3-er.min.js",
     "test": "faucet `find test -name '*-test.js'`",
     "postpublish": "zip -j build/d3-er.zip -- LICENSE README.md build/d3-er.js build/d3-er.min.js",
     "check": "npm install -g && npm link",

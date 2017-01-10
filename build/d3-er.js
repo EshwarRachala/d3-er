@@ -5872,6 +5872,9 @@ function SVG(elem) {
 var barchart = function () {
     var xValue = function (d) { return d[0]; };
     var yValue = function (d) { return d[1]; };
+    var lowerTh = function (d) { return d[2]; };
+    var higherTh = function (d) { return d[3]; };
+
     var xScale = linear$2();
     var yScale = band();
     var margin = {
@@ -5887,23 +5890,28 @@ var barchart = function () {
         selection$$1.each(function () {
             var width = this.clientWidth - margin.left - margin.right;
             var height = this.clientHeight - margin.top - margin.bottom;
+            data = data.map(function (d, i) { return [
+                xValue.call(data, d, i),
+                yValue.call(data, d, i),
+                lowerTh.call(data, d, i),
+                higherTh.call(data, d, i)
 
-            data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i)]; });
+            ]; });
 
             xScale
-                .domain([0, max(data, function (d) { return d[0]; })])
                 .range([0, width])
+                .domain([0, max(data, function (d) { return d[3]; })])
                 .nice();
 
             yScale
-                .domain(data.map(function (d) { return d[1]; }))
                 .range([height, 0])
+                .domain(data.map(function (d) { return d[1]; }))
                 .padding(0.1);
 
             var svg = select(this);
 
             var g = svg.append('g')
-                         .attr('transform', ("translate(" + (margin.left) + "," + (margin.right) + ")"));
+                .attr('transform', ("translate(" + (margin.left) + "," + (margin.right) + ")"));
 
             g.append('g')
                 .attr('class', 'x axis')
@@ -5929,14 +5937,43 @@ var barchart = function () {
                 .enter()
                 .append('rect')
                 .attr('class', 'bar')
+                .attr('x', 0)
                 .attr('y', function (d) { return yScale(d[1]); })
                 .attr('height', yScale.bandwidth())
                 .attr('width', function (d) { return xScale(d[0]); });
 
+            g.selectAll('.lowerthrline')
+                .data(data)
+                .enter()
+                .append('line')
+                .attr('class', 'lowerthrline')
+                .attr('x1', function (d) { return xScale(d[2]); })
+                .attr('x2', function (d) { return xScale(d[2]); })
+                .attr('y1', function (d) { return yScale(d[1]); })
+                .attr('y2', function (d) { return yScale(d[1]) + yScale.bandwidth(); })
+                .style('stroke', 'green')
+                .style('stroke-width', 2)
+                .style('stroke-dasharray', ('3, 3'));
+
+
+            g.selectAll('.higherthline')
+                .data(data)
+                .enter()
+                .append('line')
+                .attr('class', 'higherthline')
+                .attr('x1', function (d) { return xScale(d[3]); })
+                .attr('x2', function (d) { return xScale(d[3]); })
+                .attr('y1', function (d) { return yScale(d[1]); })
+                .attr('y2', function (d) { return yScale(d[1]) + yScale.bandwidth(); })
+                .style('stroke', 'red')
+                .style('stroke-width', 2)
+                .style('stroke-dasharray', ('3, 3'));
 
             updateData = function update() {
-                data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i)]; });
 
+                data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i),
+                    lowerTh.call(data, d, i), higherTh.call(data, d, i)
+                ]; });
                 xScale
                     .domain([0, max(data, function (d) { return d[0]; })])
                     .range([0, width])
@@ -6009,6 +6046,17 @@ var barchart = function () {
         return chart
     };
 
+    chart.lowerThreshold = function (_) {
+        if (!arguments.length) { return lowerTh }
+        lowerTh = _;
+        return chart
+    };
+
+    chart.higherThreshold = function (_) {
+        if (!arguments.length) { return higherTh }
+        higherTh = _;
+        return chart
+    };
     chart.data = function (_) {
         if (!arguments.length) { return data }
         data = _;

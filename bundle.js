@@ -61,7 +61,7 @@
 	        bottom: 20,
 	        left: 120
 	    },
-	        width = 960 - margin.left - margin.right,
+	        width = 900 - margin.left - margin.right,
 	        height = 50 - margin.top - margin.bottom;
 
 	    var bulletchart;
@@ -110,7 +110,7 @@
 	            return d.name;
 	        }).margin(margin).data(_data2.default.bar);
 
-	        d3.svg('#barchart').call(barchart);
+	        d3.svg('#barchart').style('height', 200).call(barchart);
 	    }
 
 	    function linechart() {

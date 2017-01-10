@@ -66,15 +66,29 @@
 
        function barchart() {
 
+           margin = {
+               top: 5,
+               right: 40,
+               bottom: 50,
+               left: 120
+           }
+
            barchart = d3.barchart()
                .x(function (d) {
                    return d.age
                }).y(function (d) {
                    return d.name
-               }).margin(margin)
+               })
+               .lowerThreshold(function (d) {
+                   return d.min
+               })
+               .higherThreshold(function (d) {
+                   return d.max
+               })
+               .margin(margin)
                .data(json.bar)
 
-           d3.svg('#barchart').style('height', 200).call(barchart)
+           d3.svg('#barchart').attr('height', 200).call(barchart)
        }
 
        function linechart() {
