@@ -1,98 +1,115 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
-    body {
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        margin: auto;
-        padding-top: 40px;
-        position: relative;
-        width: 960px;
-    }
-    
-    button {
-        position: absolute;
-        right: 10px;
-        top: 10px;
-    }
-    
-    .bullet {
-        font: 10px sans-serif;
-    }
-    
-    .bullet .marker {
-        stroke: #000;
-        stroke-width: 2px;
-    }
-    
-    .bullet .tick line {
-        stroke: #666;
-        stroke-width: .5px;
-    }
-    
-    .bullet .range.s0 {
-        fill: #eee;
-    }
-    
-    .bullet .range.s1 {
-        fill: #ddd;
-    }
-    
-    .bullet .range.s2 {
-        fill: #ccc;
-    }
-    
-    .bullet .measure.s0 {
-        fill: lightsteelblue;
-    }
-    
-    .bullet .measure.s1 {
-        fill: steelblue;
-    }
-    
-    .bullet .title {
-        font-size: 14px;
-        font-weight: bold;
-    }
-    
-    .bullet .subtitle {
-        fill: #999;
-    }
-    
-    .bar {
-        fill: #6F257F;
-    }
-    
-    .axis path,
-    .axis line {
-        fill: none;
-        stroke: #D4D8DA;
-        stroke-width: 1px;
-        shape-rendering: crispEdges;
-    }
-    
-    .x path {
-        display: none;
-    }
-    
-    .line {
-        fill: none;
-        stroke: steelblue;
-        stroke-width: 1.5px;
-    }
-</style>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+    crossorigin="anonymous">
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            margin: auto;
+            padding-top: 40px;
+            position: relative;
+            width: 960px;
+        }
+        
+        button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+        }
+        
+        .bullet {
+            font: 10px sans-serif;
+        }
+        
+        .bullet .marker {
+            stroke: #000;
+            stroke-width: 2px;
+        }
+        
+        .bullet .tick line {
+            stroke: #666;
+            stroke-width: .5px;
+        }
+        
+        .bullet .range.s0 {
+            fill: #eee;
+        }
+        
+        .bullet .range.s1 {
+            fill: #ddd;
+        }
+        
+        .bullet .range.s2 {
+            fill: #ccc;
+        }
+        
+        .bullet .measure.s0 {
+            fill: lightsteelblue;
+        }
+        
+        .bullet .measure.s1 {
+            fill: steelblue;
+        }
+        
+        .bullet .title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .bullet .subtitle {
+            fill: #999;
+        }
+        
+        .bar {
+            fill: #6F257F;
+        }
+        
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #D4D8DA;
+            stroke-width: 1px;
+            shape-rendering: crispEdges;
+        }
+        
+        .x path {
+            display: none;
+        }
+        
+        .line {
+            fill: none;
+            stroke: steelblue;
+            stroke-width: 1.5px;
+        }
+    </style>
 
-<body>
-    <button>Update</button>
-    <h4>Bullet chart</h4>
-    <div id="bulletchart"></div>
-    <h4>Bar Chart</h4>
-    <div id="barchart"></div>
-    <h4>Line chart</h4>
-    <div id="linechart"></div>
-    <script src="build/d3-er.js"></script>
-    <script src="bundle.js"></script>
-    <script>
-    </script>
-</body>
+    <body class="container-fluid">
+        <button>Update</button>
+        <div class="card">
+            <div class="card-header">
+                Bullet Chart
+            </div>
+            <div class="card-block" id="bulletchart">
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                Bar Chart
+            </div>
+            <div class="card-block" id="barchart">
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                Line Chart
+            </div>
+            <div class="card-block" id="linechart">
+            </div>
+        </div>
+        <script src="build/d3-er.js"></script>
+        <script src="bundle.js"></script>
+        <script>
+        </script>
+    </body>
 
-</html>
+    </html>

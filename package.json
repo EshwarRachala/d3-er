@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/eshwarrachala/d3-er#readme",
   "scripts": {
-    "lint": "eslint -c .eslintrc.json src/**",
+    "lint": "eslint -c .eslintrc.json src/** client/**",
     "rollup": "rm -rf build && mkdir build && npm run lint && rollup -c -o build/d3-er.js --index.js",
     "pretest": "uglifyjs build/d3-er.js -c -m -o build/d3-er.min.js",
     "test": "faucet `find test -name '*-test.js'`",
