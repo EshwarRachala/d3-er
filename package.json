@@ -44,7 +44,7 @@
     "babel-preset-es2015": "6.22.0",
     "eslint-config-airbnb": "13.0.0",
     "eslint-plugin-import": "2.2.0",
-    "eslint-plugin-jsx-a11y": "2.2.3",
+    "eslint-plugin-jsx-a11y": "4.0.0",
     "eslint-plugin-react": "6.9.0",
     "faucet": "0.0",
     "jsdom": "9.9.1",
