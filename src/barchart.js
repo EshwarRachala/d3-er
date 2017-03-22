@@ -66,7 +66,7 @@ export default function () {
                 .attr('dx', '-.8em')
                 .attr('dy', '.15em')
 
-            g.selectAll('.bar')
+            const bar = g.selectAll('.bar')
                 .data(data)
                 .enter()
                 .append('rect')
@@ -75,6 +75,13 @@ export default function () {
                 .attr('y', d => yScale(d[1]))
                 .attr('height', yScale.bandwidth())
                 .attr('width', d => xScale(d[0]))
+
+            bar.append('text')
+                .text('hi')
+                .attr('x', d => xScale(d[0] + 5))
+                .attr('y', yScale.bandwidth() / 2)
+                .style('fill', 'black')
+                .attr('text-anchor', 'end')
 
             g.selectAll('.lowerthrline')
                 .data(data)
@@ -86,8 +93,9 @@ export default function () {
                 .attr('y1', d => yScale(d[1]))
                 .attr('y2', d => yScale(d[1]) + yScale.bandwidth())
                 .style('stroke', 'green')
-                .style('stroke-width', 2)
+                .style('stroke-width', 3)
                 .style('stroke-dasharray', ('3, 3'))
+                .style('stroke-linecap', 'round')
 
 
             g.selectAll('.higherthline')
@@ -100,23 +108,23 @@ export default function () {
                 .attr('y1', d => yScale(d[1]))
                 .attr('y2', d => yScale(d[1]) + yScale.bandwidth())
                 .style('stroke', 'red')
-                .style('stroke-width', 2)
+                .style('stroke-width', 3)
                 .style('stroke-dasharray', ('3, 3'))
+                .style('stroke-linecap', 'round')
 
             updateData = function update() {
 
-                data = data.map((d, i) => [xValue.call(data, d, i), yValue.call(data, d, i),
-                    lowerTh.call(data, d, i), higherTh.call(data, d, i)
+                data = data.map((d, i) => [
+                    xValue.call(data, d, i),
+                    yValue.call(data, d, i),
+                    lowerTh.call(data, d, i),
+                    higherTh.call(data, d, i)
                 ])
-                xScale
-                    .domain([0, d3Array.max(data, d => d[0])])
-                    .range([0, width])
-                    .nice()
 
-                yScale
-                    .domain(data.map(d => d[1]))
-                    .range([height, 0])
-                    .padding(0.1)
+
+                xScale.domain([0, d3Array.max(data, d => d[3])])
+
+                yScale.domain(data.map(d => d[1]))
 
                 const bar = g.selectAll('.bar').data(data)
 
@@ -136,6 +144,44 @@ export default function () {
                     .duration(2000).remove()
                 g.select('.x').transition()
                     .duration(2000).remove()
+
+                const marklower = g.selectAll('.lowerthrline').data(data)
+
+                marklower
+                    .enter()
+                    .append('line')
+                    .merge(marklower)
+                    .transition()
+                    .duration(2000)
+                    .attr('class', 'lowerthrline')
+                    .attr('x1', d => xScale(d[2]))
+                    .attr('x2', d => xScale(d[2]))
+                    .attr('y1', d => yScale(d[1]))
+                    .attr('y2', d => yScale(d[1]) + yScale.bandwidth())
+                    .style('stroke', 'green')
+                    .style('stroke-width', 2)
+                    .style('stroke-dasharray', ('3, 3'))
+
+                marklower.exit().remove()
+
+                const markshigher = g.selectAll('.higherthline').data(data)
+
+                markshigher
+                    .enter()
+                    .append('line')
+                    .merge(markshigher)
+                    .transition()
+                    .duration(2000)
+                    .attr('class', 'higherthline')
+                    .attr('x1', d => xScale(d[3]))
+                    .attr('x2', d => xScale(d[3]))
+                    .attr('y1', d => yScale(d[1]))
+                    .attr('y2', d => yScale(d[1]) + yScale.bandwidth())
+                    .style('stroke', 'red')
+                    .style('stroke-width', 2)
+                    .style('stroke-dasharray', ('3, 3'))
+
+                markshigher.exit().remove()
 
                 g.append('g')
                     .attr('class', 'x axis')

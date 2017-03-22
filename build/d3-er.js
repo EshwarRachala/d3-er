@@ -5906,7 +5906,7 @@ var barchart = function () {
             yScale
                 .range([height, 0])
                 .domain(data.map(function (d) { return d[1]; }))
-                .padding(0.1);
+                .padding(0.2);
 
             var svg = select(this);
 
@@ -5932,7 +5932,7 @@ var barchart = function () {
                 .attr('dx', '-.8em')
                 .attr('dy', '.15em');
 
-            g.selectAll('.bar')
+            var bar = g.selectAll('.bar')
                 .data(data)
                 .enter()
                 .append('rect')
@@ -5942,6 +5942,16 @@ var barchart = function () {
                 .attr('height', yScale.bandwidth())
                 .attr('width', function (d) { return xScale(d[0]); });
 
+            bar.append('text')
+                .text('hi')
+                .attr('x', function (d) { return xScale(d[0] + 5); })
+                .attr('y', yScale.bandwidth() / 2)
+                .style('fill', 'black')
+                .attr('text-anchor', 'end');
+
+            /*eslint-disable */
+            debugger
+            /* eslint-enable */
             g.selectAll('.lowerthrline')
                 .data(data)
                 .enter()
@@ -5952,8 +5962,9 @@ var barchart = function () {
                 .attr('y1', function (d) { return yScale(d[1]); })
                 .attr('y2', function (d) { return yScale(d[1]) + yScale.bandwidth(); })
                 .style('stroke', 'green')
-                .style('stroke-width', 2)
-                .style('stroke-dasharray', ('3, 3'));
+                .style('stroke-width', 3)
+                .style('stroke-dasharray', ('3, 3'))
+                .style('stroke-linecap', 'round');
 
 
             g.selectAll('.higherthline')
@@ -5966,23 +5977,23 @@ var barchart = function () {
                 .attr('y1', function (d) { return yScale(d[1]); })
                 .attr('y2', function (d) { return yScale(d[1]) + yScale.bandwidth(); })
                 .style('stroke', 'red')
-                .style('stroke-width', 2)
-                .style('stroke-dasharray', ('3, 3'));
+                .style('stroke-width', 3)
+                .style('stroke-dasharray', ('3, 3'))
+                .style('stroke-linecap', 'round');
 
             updateData = function update() {
 
-                data = data.map(function (d, i) { return [xValue.call(data, d, i), yValue.call(data, d, i),
-                    lowerTh.call(data, d, i), higherTh.call(data, d, i)
+                data = data.map(function (d, i) { return [
+                    xValue.call(data, d, i),
+                    yValue.call(data, d, i),
+                    lowerTh.call(data, d, i),
+                    higherTh.call(data, d, i)
                 ]; });
-                xScale
-                    .domain([0, max(data, function (d) { return d[0]; })])
-                    .range([0, width])
-                    .nice();
 
-                yScale
-                    .domain(data.map(function (d) { return d[1]; }))
-                    .range([height, 0])
-                    .padding(0.1);
+
+                xScale.domain([0, max(data, function (d) { return d[3]; })]);
+
+                yScale.domain(data.map(function (d) { return d[1]; }));
 
                 var bar = g.selectAll('.bar').data(data);
 
@@ -6002,6 +6013,44 @@ var barchart = function () {
                     .duration(2000).remove();
                 g.select('.x').transition()
                     .duration(2000).remove();
+
+                var marklower = g.selectAll('.lowerthrline').data(data);
+
+                marklower
+                    .enter()
+                    .append('line')
+                    .merge(marklower)
+                    .transition()
+                    .duration(2000)
+                    .attr('class', 'lowerthrline')
+                    .attr('x1', function (d) { return xScale(d[2]); })
+                    .attr('x2', function (d) { return xScale(d[2]); })
+                    .attr('y1', function (d) { return yScale(d[1]); })
+                    .attr('y2', function (d) { return yScale(d[1]) + yScale.bandwidth(); })
+                    .style('stroke', 'green')
+                    .style('stroke-width', 2)
+                    .style('stroke-dasharray', ('3, 3'));
+
+                marklower.exit().remove();
+
+                var markshigher = g.selectAll('.higherthline').data(data);
+
+                markshigher
+                    .enter()
+                    .append('line')
+                    .merge(markshigher)
+                    .transition()
+                    .duration(2000)
+                    .attr('class', 'higherthline')
+                    .attr('x1', function (d) { return xScale(d[3]); })
+                    .attr('x2', function (d) { return xScale(d[3]); })
+                    .attr('y1', function (d) { return yScale(d[1]); })
+                    .attr('y2', function (d) { return yScale(d[1]) + yScale.bandwidth(); })
+                    .style('stroke', 'red')
+                    .style('stroke-width', 2)
+                    .style('stroke-dasharray', ('3, 3'));
+
+                markshigher.exit().remove();
 
                 g.append('g')
                     .attr('class', 'x axis')

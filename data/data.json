@@ -15,7 +15,7 @@
         "name": "Pan",
         "age": 27,
         "min": 30,
-        "max": 34
+        "max": 35
     }, {
         "name": "Json",
         "age": 37,
@@ -24,10 +24,14 @@
     }],
     "updatebar": [{
         "name": "Alice",
-        "age": 3
+        "age": 3,
+        "min": 5,
+        "max": 7
     }, {
         "name": "Brian",
-        "age": 45
+        "age": 45,
+        "min": 54,
+        "max": 60
     }],
     "line": [{
             "date": "Jan 2000",
