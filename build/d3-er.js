@@ -5949,9 +5949,6 @@ var barchart = function () {
                 .style('fill', 'black')
                 .attr('text-anchor', 'end');
 
-            /*eslint-disable */
-            debugger
-            /* eslint-enable */
             g.selectAll('.lowerthrline')
                 .data(data)
                 .enter()

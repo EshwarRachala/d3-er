@@ -104,13 +104,24 @@
 
 	    function barchart() {
 
+	        margin = {
+	            top: 5,
+	            right: 40,
+	            bottom: 50,
+	            left: 120
+	        };
+
 	        barchart = d3.barchart().x(function (d) {
 	            return d.age;
 	        }).y(function (d) {
 	            return d.name;
+	        }).lowerThreshold(function (d) {
+	            return d.min;
+	        }).higherThreshold(function (d) {
+	            return d.max;
 	        }).margin(margin).data(_data2.default.bar);
 
-	        d3.svg('#barchart').style('height', 200).call(barchart);
+	        d3.svg('#barchart').attr('height', 200).call(barchart);
 	    }
 
 	    function linechart() {
@@ -171,25 +182,35 @@
 		"bar": [
 			{
 				"name": "Maria",
-				"age": 33
+				"age": 33,
+				"min": 34,
+				"max": 38
 			},
 			{
 				"name": "Pan",
-				"age": 27
+				"age": 27,
+				"min": 30,
+				"max": 35
 			},
 			{
 				"name": "Json",
-				"age": 37
+				"age": 37,
+				"min": 39,
+				"max": 44
 			}
 		],
 		"updatebar": [
 			{
 				"name": "Alice",
-				"age": 3
+				"age": 3,
+				"min": 5,
+				"max": 7
 			},
 			{
 				"name": "Brian",
-				"age": 45
+				"age": 45,
+				"min": 54,
+				"max": 60
 			}
 		],
 		"line": [
